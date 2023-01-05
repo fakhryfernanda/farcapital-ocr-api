@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\IdcardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -31,6 +32,8 @@ Route::post("/user/{id}/delete", [UserController::class, "destroy"]);
 // ----------( role )---------
 Route::get("/role", [RoleController::class, "index"]);
 
+
+Route::post("/upload", [IdcardController::class, "readImage"]);
 // ---------{Sanctum}-------
 Route::post("/login", [AuthController::class, "login"]);
 Route::get("/me", [AuthController::class, "getUser"])->middleware("auth:sanctum");

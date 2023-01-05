@@ -23,6 +23,10 @@ use Illuminate\Support\Facades\Route;
 
 // ----------( user )---------
 Route::get("/user", [UserController::class, "index"]);
+Route::get("/user/{id}", [UserController::class, "show"]);
+Route::post("/user", [UserController::class, "store"]);
+Route::post("/user/{id}/edit", [UserController::class, "update"]);
+Route::post("/user/{id}/delete", [UserController::class, "destroy"]);
 
 // ----------( role )---------
 Route::get("/role", [RoleController::class, "index"]);

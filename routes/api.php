@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\IdcardController;
+use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,5 +20,11 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
+<<<<<<< HEAD
 
 Route::post("/upload", [IdcardController::class, "readImage"]);
+=======
+// ---------{Sanctum}-------
+Route::post("/login", [AuthController::class, "login"]);
+Route::get("/me", [AuthController::class, "getUser"])->middleware("auth:sanctum");
+>>>>>>> 701e6e9bcefa315a65b1b9a88994a9b12365e3a6

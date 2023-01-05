@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -17,11 +18,8 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    protected $guarded = ['id'];
+    protected $table = "users";
 
     /**
      * The attributes that should be hidden for serialization.
@@ -33,12 +31,22 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+
+            $hash = Hash::make($user->password);
+
+            $user->password = $hash;
+        });
+
+        self::updating(function ($user) {
+            if ($user->isDirty(["password"])) {
+                $hash = Hash::make($user->password);
+                $user->password = $hash;
+            }
+        });
+    }
 }

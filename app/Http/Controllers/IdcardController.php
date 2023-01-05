@@ -236,7 +236,7 @@ class IdcardController extends Controller
         $identity = Identity::query()->create($payload);
         return response()->json([
             "status" => true,
-            "message" => "data ".$identity['email']." tersimpan",
+            "message" => "data tersimpan",
             "data" => $identity
         ]);
     }

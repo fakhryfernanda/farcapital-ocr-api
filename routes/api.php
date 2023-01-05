@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\IdcardController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,7 +22,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// ----------( user )---------
+Route::get("/user", [UserController::class, "index"]);
+Route::get("/user/{id}", [UserController::class, "show"]);
+Route::post("/user", [UserController::class, "store"]);
+Route::post("/user/{id}/edit", [UserController::class, "update"]);
+Route::post("/user/{id}/delete", [UserController::class, "destroy"]);
 
+// ----------( role )---------
+Route::get("/role", [RoleController::class, "index"]);
 Route::post("/upload", [IdcardController::class, "readImage"]);
 // ---------{Sanctum}-------
 Route::post("/login", [AuthController::class, "login"]);

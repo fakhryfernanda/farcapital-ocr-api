@@ -32,6 +32,8 @@ class CreateIdentityTable extends Migration
             $table->string("pekerjaan", 100);
             $table->string("kewarganegaraan", 50);
             $table->string("golongan_darah", 2)->nullable();
+            $table->text("ktp");
+            $table->text("foto")->nullable();
             $table->timestamps();
         });
     }

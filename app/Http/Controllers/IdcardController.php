@@ -6,32 +6,22 @@ use Alimranahmed\LaraOCR\Services\OcrAbstract;
 use OCR;
 use function PHPUnit\Framework\matches;
 use App\Http\Controllers\Controller;
+use App\Models\Identity;
 use Illuminate\Http\Request;
 
 class IdcardController extends Controller
 {
-    protected $ocr;
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     * 
-     * 
-     */
-
-
+    
     public function readImage(Request $request)
     {
-
-
         $image = $request->image;
         if (isset($image) && $image->getPathName()) {
             $ocr = app()->make(OcrAbstract::class);
             $parsedText = $ocr->scan($image->getPathName());
 
-
             $newParsedText = preg_split('/\n/', $parsedText);
             $newParsedText = array_values(array_filter($newParsedText));
+
             $provinsi = $newParsedText[0];
 
             $pattern = "/(?<=provinsi ).*/i";
@@ -226,46 +216,28 @@ class IdcardController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        $payload = $request->all();
+
+        $identity = Identity::query()->create($payload);
+        return response()->json([
+            "status" => true,
+            "message" => "data ".$identity['email']." tersimpan",
+            "data" => $identity
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
         //

@@ -31,8 +31,6 @@ Route::post("/user/{id}/delete", [UserController::class, "destroy"]);
 
 // ----------( role )---------
 Route::get("/role", [RoleController::class, "index"]);
-
-
 Route::post("/upload", [IdcardController::class, "readImage"]);
 // ---------{Sanctum}-------
 Route::post("/login", [AuthController::class, "login"]);

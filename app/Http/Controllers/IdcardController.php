@@ -31,11 +31,11 @@ class IdcardController extends Controller
             $parsedText = $ocr->scan($image->getPathName());
 
 
-            $pattern = '/provinsi/i';
+            $pattern = '/prov/i';
             $checkProvinsi = preg_match($pattern, $parsedText, $matches);
             $new_pattern = preg_split('/\n/', $parsedText);
             $new_pattern = array_values(array_filter($new_pattern));
-
+            // dd($new_pattern);
             if ($new_pattern == null) {
                 return response()->json([
                     'status' => false,

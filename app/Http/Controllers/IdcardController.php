@@ -23,24 +23,34 @@ class IdcardController extends Controller
     public function readImage(Request $request)
     {
         $image = $request->image;
+
         if (isset($image) && $image->getPathName()) {
             $ocr = app()->make(OcrAbstract::class);
             $parsedText = $ocr->scan($image->getPathName());
 
 
-
-
-            $pattern = '/provins/i';
+            $pattern = '/provinsi/i';
             $checkProvinsi = preg_match($pattern, $parsedText, $matches);
-
-
             $new_pattern = preg_split('/\n/', $parsedText);
             $new_pattern = array_values(array_filter($new_pattern));
 
-
             if ($new_pattern == null) {
-                dd('mohon upload ulang ktp');
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Mohon Upload Ulang KTP',
+
+                ]);
             } else {
+
+                $words1 = $new_pattern;
+                usort($new_pattern, function ($a, $b) {
+                    similar_text('PROVINSI', $a, $percentA);
+                    similar_text('PROVINSI', $b, $percentB);
+                    return $percentB - $percentA;
+                });
+                $cutter = array_search($new_pattern[0], $words1);
+                $new_pattern = array_slice($words1, $cutter);
+
                 $provinsi = $new_pattern[0];
                 if ($checkProvinsi) {
 
@@ -301,13 +311,19 @@ class IdcardController extends Controller
 
                     return response()->json([
                         'status' => true,
-                        'message' => 'Upload file berhasil',
+                        'message' => 'succes',
                         'data' => $ktp
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik'
                     ]);
                 }
             }
         }
     }
+
 
     public function index()
     {

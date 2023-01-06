@@ -344,7 +344,9 @@ class IdcardController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(),[
+        $payload = $request->all();
+
+        $validator = Validator::make($payload, [
             "nik" => 'required|min:16|max:16',
             "nama" => 'required',
             "tempat_lahir" => 'required',
@@ -371,10 +373,9 @@ class IdcardController extends Controller
                 "data" => null
             ]);
         }
-        $payload = $request->all();
 
         $count = Identity::where('nik', '=', $payload['nik'])->count();
-
+        
         if($count == 0){
             $identity = Identity::query()->create($payload);
         }else{
@@ -383,7 +384,8 @@ class IdcardController extends Controller
             ->select('id')
             ->where("nik", $payload['nik'])
             ->first();
-            $identity = Identity::find($query['id'])->update($payload);
+            $identity = Identity::where('nik', $payload['nik'])->first();
+            Identity::find($identity['id'])->update($payload);
         }
         
 

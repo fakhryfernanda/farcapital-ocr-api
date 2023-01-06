@@ -6,7 +6,9 @@ use Alimranahmed\LaraOCR\Services\OcrAbstract;
 use OCR;
 use function PHPUnit\Framework\matches;
 use App\Http\Controllers\Controller;
+use App\Models\Identity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class IdcardController extends Controller
 {
@@ -29,11 +31,11 @@ class IdcardController extends Controller
             $parsedText = $ocr->scan($image->getPathName());
 
 
-            $pattern = '/provinsi/i';
+            $pattern = '/prov/i';
             $checkProvinsi = preg_match($pattern, $parsedText, $matches);
             $new_pattern = preg_split('/\n/', $parsedText);
             $new_pattern = array_values(array_filter($new_pattern));
-
+            // dd($new_pattern);
             if ($new_pattern == null) {
                 return response()->json([
                     'status' => false,
@@ -342,7 +344,54 @@ class IdcardController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(),[
+            "nik" => 'required|min:16|max:16',
+            "nama" => 'required',
+            "tempat_lahir" => 'required',
+            "tanggal_lahir" => 'required|date',
+            "jenis_kelamin" => 'required|max:1',
+            "alamat" => 'required',
+            "rt" => 'required|max:3',
+            "rw" => 'required|max:3',
+            "kelurahan" => 'required',
+            "kecamatan" => 'required',
+            "kota" => 'required',
+            "provinsi" => 'required',
+            "agama" => 'required',
+            "status_perkawinan" => 'required',
+            "pekerjaan" => 'required',
+            "kewarganegaraan" => 'required',
+            "golongan_darah" => 'required|max:2'
+        ]);
+        
+        if($validator->fails()){
+            return response()->json([
+                "status" => false,
+                "message" => $validator->errors(),
+                "data" => null
+            ]);
+        }
+        $payload = $request->all();
+
+        $count = Identity::where('nik', '=', $payload['nik'])->count();
+
+        if($count == 0){
+            $identity = Identity::query()->create($payload);
+        }else{
+
+            $query = Identity::query()
+            ->select('id')
+            ->where("nik", $payload['nik'])
+            ->first();
+            $identity = Identity::find($query['id'])->update($payload);
+        }
+        
+
+        return response()->json([
+            "status" => true,
+            "message" => "data tersimpan",
+            "data" => $identity
+        ]);
     }
 
     /**

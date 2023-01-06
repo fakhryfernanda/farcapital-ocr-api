@@ -24,8 +24,9 @@ class IdcardController extends Controller
 
     public function readImage(Request $request)
     {
-        $image = $request->image;
+        $image = $request->file('image');
 
+        // dd($image);
         if (isset($image) && $image->getPathName()) {
             $ocr = app()->make(OcrAbstract::class);
             $parsedText = $ocr->scan($image->getPathName());
@@ -290,7 +291,7 @@ class IdcardController extends Controller
                     } else {
                         $kewarganegaraan = '-';
                     }
-                    // dd($new_pattern);
+
                     $ktp = [
                         "provinsi" => $provinsi,
                         "kota" => $kota,
@@ -361,7 +362,8 @@ class IdcardController extends Controller
             "status_perkawinan" => 'required',
             "pekerjaan" => 'required',
             "kewarganegaraan" => 'required',
-            "golongan_darah" => 'required|max:2'
+            "golongan_darah" => 'required|max:2',
+            "image" => 'required|mimes:jpg,jpeg,png,heic'
         ]);
         
         if($validator->fails()){
@@ -372,18 +374,25 @@ class IdcardController extends Controller
             ]);
         }
         $payload = $request->all();
-
+        //-----
+        $file = $request->file("image");
+        $filename = $file->hashName();
+        
+        $path = $request->getSchemeAndHttpHost() . "/ktp/" . $filename;
+        $payload['image'] =  $path;
+        //----
         $count = Identity::where('nik', '=', $payload['nik'])->count();
 
         if($count == 0){
             $identity = Identity::query()->create($payload);
+            $file->move("ktp", $filename);
         }else{
-
             $query = Identity::query()
             ->select('id')
             ->where("nik", $payload['nik'])
             ->first();
             $identity = Identity::find($query['id'])->update($payload);
+            $file->move("ktp", $filename);
         }
         
 

@@ -73,8 +73,9 @@ class UserController extends Controller
                 "data" => null
             ]);
         }
-
+        // dd($payload,$count);
         $user = User::query()->create($payload);
+        // dd($user);
         return response()->json([
             "status" => true,
             "message" => "data ".$user['email']." tersimpan",

@@ -183,9 +183,9 @@ class IdcardController extends Controller
                                 // dd($gender);
 
                                 if ($gender == "p" || $gender == "P") {
-                                    $gender = 'PEREMPUAN';
+                                    $gender = 0;
                                 } else {
-                                    $gender = "LAKI-LAKI";
+                                    $gender = 1;
                                 }
                             } else {
                                 $gender = '-';
@@ -327,7 +327,8 @@ class IdcardController extends Controller
                             "agama" => $agama,
                             "perkawinan" => $perkawinan,
                             "pekerjaan" => $pekerjaan,
-                            "kewarganegaraan" => $kewarganegaraan
+                            "kewarganegaraan" => $kewarganegaraan,
+                            "image" => $image,
                         ];
 
                         return response()->json([

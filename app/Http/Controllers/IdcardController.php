@@ -24,13 +24,13 @@ class IdcardController extends Controller
 
     public function readImage(Request $request)
     {
-        $image = $request->image;
+        $image = $request->file('image');
 
         if (isset($image) && $image->getPathName()) {
             $ocr = app()->make(OcrAbstract::class);
             $parsedText = $ocr->scan($image->getPathName());
 
-
+            // return $parsedText;
             $pattern = '/prov/i';
             $checkProvinsi = preg_match($pattern, $parsedText, $matches);
             $new_pattern = preg_split('/\n/', $parsedText);
@@ -382,7 +382,8 @@ class IdcardController extends Controller
             "status_perkawinan" => 'required',
             "pekerjaan" => 'required',
             "kewarganegaraan" => 'required',
-            "golongan_darah" => 'required|max:2'
+            "golongan_darah" => 'required|max:2',
+            "ktp" => 'required|mimes:jpg,jpeg,png,heic'
         ]);
 
         if ($validator->fails()) {
@@ -392,22 +393,33 @@ class IdcardController extends Controller
                 "data" => null
             ]);
         }
-
-        $count = Identity::where('nik', '=', $payload['nik'])->count();
+        $payload = $request->all();
+        //-----
+        $file = $request->file("ktp");
+        $filename = $file->hashName();
         
+        $path = $request->getSchemeAndHttpHost() . "/ktp/" . $filename;
+        $payload['ktp'] =  $path;
+        //----
+        $count = Identity::where('nik', '=', $payload['nik'])->count();
+    
         if ($count == 0) {
             $identity = Identity::query()->create($payload);
-        } else {
-
+            $file->move("ktp", $filename);
+        }else{
             $query = Identity::query()
-            ->select('id')
             ->where("nik", $payload['nik'])
             ->first();
-            $identity = Identity::where('nik', $payload['nik'])->first();
-            Identity::find($identity['id'])->update($payload);
+            $identity = Identity::find($query['id'])->update($payload);
+            // $identity = Identity::where('nik', $payload['nik'])->first();
+            // Identity::find($identity['id'])->update($payload);
+            $identity = $payload;
+            $file->move("ktp", $filename);
+            $lokasiimage = str_replace($request->getSchemeAndHttpHost(), '', $query->ktp);
+            $image = public_path($lokasiimage);
+            unlink($image);
         }
-
-
+        
         return response()->json([
             "status" => true,
             "message" => "data tersimpan",

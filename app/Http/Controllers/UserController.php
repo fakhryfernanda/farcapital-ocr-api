@@ -10,10 +10,10 @@ class UserController extends Controller
     function index()
     {
         $user = User::query()
-        ->join('role', 'users.id_role', '=', 'role.id')
-        ->select('users.*', 'role.nama_role')
-        ->orderBy('users.id_role','asc')
-        ->get();
+            ->join('role', 'users.id_role', '=', 'role.id')
+            ->select('users.*', 'role.nama_role')
+            ->orderBy('users.id_role', 'asc')
+            ->get();
 
         // dd($user);
         return response()->json([
@@ -65,8 +65,9 @@ class UserController extends Controller
                 "data" => null
             ]);
         }
+        // dd($payload);
         $count = User::where('email', '=', $payload['email'])->count();
-        
+
         if ($count > 0) {
             return response()->json([
                 "status" => false,
@@ -74,12 +75,12 @@ class UserController extends Controller
                 "data" => 'email'
             ]);
         }
-        
+
         $user = User::query()->create($payload);
         // dd($user);
         return response()->json([
             "status" => true,
-            "message" => "Akun ".$user['email']." berhasil dibuat",
+            "message" => "Akun " . $user['email'] . " berhasil dibuat",
             "data" => $user
         ]);
     }

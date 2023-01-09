@@ -25,7 +25,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // ----------( identity )---------
 Route::post("/identity/add", [IdcardController::class, "store"]);
 Route::post("/upload", [IdcardController::class, "readImage"]);
-Route::get("/identity", [IdcardController::class, "index"]);
+Route::get("/identity/{id}", [IdcardController::class, "index"]);
 
 // ----------( user )---------
 Route::get("/user", [UserController::class, "index"]);

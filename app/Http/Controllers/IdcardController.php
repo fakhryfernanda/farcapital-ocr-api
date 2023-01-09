@@ -348,9 +348,18 @@ class IdcardController extends Controller
     }
 
 
-    public function index()
+    public function index($id)
     {
-        $identity = Identity::query()->get();
+        $identity = Identity::where('id_user', $id)->first();
+        
+        if (!$identity) {
+            return response()->json([
+                "status" => false,
+                "message" => "data tidak ditemukan",
+                "data" => null
+            ]);
+        }
+
         return response()->json([
             "status" => true,
             "message" => "",

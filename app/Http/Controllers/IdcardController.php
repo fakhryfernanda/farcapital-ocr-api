@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Alimranahmed\LaraOCR\Services\OcrAbstract;
 use OCR;
-use function PHPUnit\Framework\matches;
-use App\Http\Controllers\Controller;
 use App\Models\Identity;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use function PHPUnit\Framework\matches;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Alimranahmed\LaraOCR\Services\OcrAbstract;
 
 class IdcardController extends Controller
 {
@@ -24,13 +25,13 @@ class IdcardController extends Controller
 
     public function readImage(Request $request)
     {
-        $image = $request->image;
+        $image = $request->file('image');
 
         if (isset($image) && $image->getPathName()) {
             $ocr = app()->make(OcrAbstract::class);
             $parsedText = $ocr->scan($image->getPathName());
 
-
+            // return $parsedText;
             $pattern = '/prov/i';
             $checkProvinsi = preg_match($pattern, $parsedText, $matches);
             $new_pattern = preg_split('/\n/', $parsedText);
@@ -383,7 +384,8 @@ class IdcardController extends Controller
             "status_perkawinan" => 'required',
             "pekerjaan" => 'required',
             "kewarganegaraan" => 'required',
-            "golongan_darah" => 'required|max:2'
+            "golongan_darah" => 'required|max:2',
+            "ktp" => 'required|mimes:jpg,jpeg,png,heic'
         ]);
 
         if ($validator->fails()) {
@@ -394,25 +396,22 @@ class IdcardController extends Controller
             ]);
         }
 
-        $count = Identity::where('nik', '=', $payload['nik'])->count();
+        $identity = Identity::where('nik', '=', $payload['nik'])->first();
 
-
-        if ($count == 0) {
-            $identity = Identity::query()->create($payload);
+        if (!$identity) {
+            $payload["ktp"] = $request->file("ktp")->store("images", "public");
+            $identity = Identity::create($payload);
         } else {
-
-            $query = Identity::query()
-                ->select('id')
-                ->where("nik", $payload['nik'])
-                ->first();
-            $identity = Identity::where('nik', $payload['nik'])->first();
-            Identity::find($identity['id'])->update($payload);
+            if ($request->hasFile("ktp")) {
+                Storage::disk('public')->delete($identity->ktp);                            // hapus foto ktp sebelumnya
+                $payload["ktp"] = $request->file("ktp")->store("images", "public");
+            }
+            $identity->update($payload);
         }
-
 
         return response()->json([
             "status" => true,
-            "message" => "data tersimpan",
+            "message" => "data berhasil disimpan",
             "data" => $identity
         ]);
     }

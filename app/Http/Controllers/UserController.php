@@ -15,6 +15,7 @@ class UserController extends Controller
             ->orderBy('users.id_role', 'asc')
             ->get();
 
+        // dd($user);
         return response()->json([
             "status" => true,
             "message" => "list user",
@@ -76,9 +77,10 @@ class UserController extends Controller
         }
 
         $user = User::query()->create($payload);
+        // dd($user);
         return response()->json([
             "status" => true,
-            "message" => "data " . $user['email'] . " tersimpan",
+            "message" => "Akun " . $user['email'] . " berhasil dibuat",
             "data" => $user
         ]);
     }

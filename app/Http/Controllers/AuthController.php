@@ -18,8 +18,8 @@ class AuthController extends Controller
         if ($user == null) {
             return response()->json([
                 "status" => false,
-                "message" => "email tidak ditemukan",
-                "data" => null
+                "message" => "Email tidak ditemukan",
+                "data" => "email"
             ]);
         }
 
@@ -27,8 +27,8 @@ class AuthController extends Controller
         if (!Hash::check($request->input("password"), $user->password)) {
             return response()->json([
                 "status" => false,
-                "message" => "password salah",
-                "data" => null
+                "message" => "Password salah",
+                "data" => "password"
             ]);
         }
 

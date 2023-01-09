@@ -348,10 +348,11 @@ class IdcardController extends Controller
 
     public function index()
     {
+        $identity = Identity::query()->get();
         return response()->json([
-            'status' => true,
-            'message' => 'succes',
-            'data' => 'ini contoh'
+            "status" => true,
+            "message" => "",
+            "data" => $identity
         ]);
     }
 
@@ -394,17 +395,16 @@ class IdcardController extends Controller
         }
 
         $count = Identity::where('nik', '=', $payload['nik'])->count();
-        
-        if($count == 0){
+
 
         if ($count == 0) {
             $identity = Identity::query()->create($payload);
         } else {
 
             $query = Identity::query()
-            ->select('id')
-            ->where("nik", $payload['nik'])
-            ->first();
+                ->select('id')
+                ->where("nik", $payload['nik'])
+                ->first();
             $identity = Identity::where('nik', $payload['nik'])->first();
             Identity::find($identity['id'])->update($payload);
         }
@@ -423,6 +423,7 @@ class IdcardController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+
     public function show($id)
     {
         //

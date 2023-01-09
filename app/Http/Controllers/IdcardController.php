@@ -59,10 +59,16 @@ class IdcardController extends Controller
                     ]);
                 } else {
 
-                    $provinsi = $new_pattern[0];
+                    $provinsi_baru = $new_pattern[0];
+
+                    $a = explode(" ", $provinsi_baru);
+
+                    $a[0] = 'PROVINSI';
+
+                    $b = implode(" ", $a);
+                    $provinsi = $b;
+
                     if ($checkProvinsi) {
-
-
 
                         $pattern = "/(?<=provinsi ).*/i";
                         $isExisted = preg_match($pattern, $provinsi, $matches);
@@ -378,8 +384,8 @@ class IdcardController extends Controller
             "kewarganegaraan" => 'required',
             "golongan_darah" => 'required|max:2'
         ]);
-        
-        if($validator->fails()){
+
+        if ($validator->fails()) {
             return response()->json([
                 "status" => false,
                 "message" => $validator->errors(),
@@ -390,8 +396,10 @@ class IdcardController extends Controller
         $count = Identity::where('nik', '=', $payload['nik'])->count();
         
         if($count == 0){
+
+        if ($count == 0) {
             $identity = Identity::query()->create($payload);
-        }else{
+        } else {
 
             $query = Identity::query()
             ->select('id')
@@ -400,7 +408,7 @@ class IdcardController extends Controller
             $identity = Identity::where('nik', $payload['nik'])->first();
             Identity::find($identity['id'])->update($payload);
         }
-        
+
 
         return response()->json([
             "status" => true,

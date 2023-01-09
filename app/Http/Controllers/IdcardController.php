@@ -26,12 +26,11 @@ class IdcardController extends Controller
     {
         $image = $request->file('image');
 
-        // dd($image);
         if (isset($image) && $image->getPathName()) {
             $ocr = app()->make(OcrAbstract::class);
             $parsedText = $ocr->scan($image->getPathName());
 
-
+            // return $parsedText;
             $pattern = '/prov/i';
             $checkProvinsi = preg_match($pattern, $parsedText, $matches);
             $new_pattern = preg_split('/\n/', $parsedText);
@@ -384,7 +383,7 @@ class IdcardController extends Controller
             "pekerjaan" => 'required',
             "kewarganegaraan" => 'required',
             "golongan_darah" => 'required|max:2',
-            "image" => 'required|mimes:jpg,jpeg,png,heic'
+            "ktp" => 'required|mimes:jpg,jpeg,png,heic'
         ]);
 
         if ($validator->fails()) {
@@ -396,11 +395,11 @@ class IdcardController extends Controller
         }
         $payload = $request->all();
         //-----
-        $file = $request->file("image");
+        $file = $request->file("ktp");
         $filename = $file->hashName();
         
         $path = $request->getSchemeAndHttpHost() . "/ktp/" . $filename;
-        $payload['image'] =  $path;
+        $payload['ktp'] =  $path;
         //----
         $count = Identity::where('nik', '=', $payload['nik'])->count();
     
@@ -409,13 +408,16 @@ class IdcardController extends Controller
             $file->move("ktp", $filename);
         }else{
             $query = Identity::query()
-            ->select('id')
             ->where("nik", $payload['nik'])
             ->first();
-            // $identity = Identity::find($query['id'])->update($payload);
-            $identity = Identity::where('nik', $payload['nik'])->first();
-            Identity::find($identity['id'])->update($payload);
+            $identity = Identity::find($query['id'])->update($payload);
+            // $identity = Identity::where('nik', $payload['nik'])->first();
+            // Identity::find($identity['id'])->update($payload);
+            $identity = $payload;
             $file->move("ktp", $filename);
+            $lokasiimage = str_replace($request->getSchemeAndHttpHost(), '', $query->ktp);
+            $image = public_path($lokasiimage);
+            unlink($image);
         }
         
         return response()->json([

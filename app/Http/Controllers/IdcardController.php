@@ -49,7 +49,7 @@ class IdcardController extends Controller
                 usort($new_pattern, function ($a, $b) {
                     similar_text('PROVINSI', $a, $percentA);
                     similar_text('PROVINSI', $b, $percentB);
-                    return $percentB - $percentA;
+                    // return $percentB - $percentA;
                 });
                 $cutter = array_search($new_pattern[0], $words1);
                 $new_pattern = array_slice($words1, $cutter);

@@ -18,7 +18,7 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $guarded = ['id','email'];
+    protected $guarded = ['id'];
     protected $table = "users";
 
     /**

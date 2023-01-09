@@ -9,16 +9,16 @@ class UserController extends Controller
 {
     function index()
     {
-        $role = User::query()
-        ->join('role', 'users.id_role', '=', 'role.id')
-        ->select('users.*', 'role.nama_role')
-        ->orderBy('users.id_role','asc')
-        ->get();
+        $user = User::query()
+            ->join('role', 'users.id_role', '=', 'role.id')
+            ->select('users.*', 'role.nama_role')
+            ->orderBy('users.id_role', 'asc')
+            ->get();
 
         return response()->json([
             "status" => true,
             "message" => "list user",
-            "data" => $role
+            "data" => $user
         ]);
     }
 
@@ -64,20 +64,21 @@ class UserController extends Controller
                 "data" => null
             ]);
         }
+        // dd($payload);
         $count = User::where('email', '=', $payload['email'])->count();
 
         if ($count > 0) {
             return response()->json([
                 "status" => false,
                 "message" => "email sudah terdaftar",
-                "data" => null
+                "data" => 'email'
             ]);
         }
 
         $user = User::query()->create($payload);
         return response()->json([
             "status" => true,
-            "message" => "data ".$user['email']." tersimpan",
+            "message" => "data " . $user['email'] . " tersimpan",
             "data" => $user
         ]);
     }

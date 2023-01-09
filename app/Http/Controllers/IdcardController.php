@@ -395,8 +395,6 @@ class IdcardController extends Controller
 
         $count = Identity::where('nik', '=', $payload['nik'])->count();
         
-        if($count == 0){
-
         if ($count == 0) {
             $identity = Identity::query()->create($payload);
         } else {

@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Alimranahmed\LaraOCR\Services\OcrAbstract;
 use OCR;
-use function PHPUnit\Framework\matches;
-use App\Http\Controllers\Controller;
 use App\Models\Identity;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use function PHPUnit\Framework\matches;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Alimranahmed\LaraOCR\Services\OcrAbstract;
 
 class IdcardController extends Controller
 {
@@ -393,36 +394,24 @@ class IdcardController extends Controller
                 "data" => null
             ]);
         }
-        $payload = $request->all();
-        //-----
-        $file = $request->file("ktp");
-        $filename = $file->hashName();
         
-        $path = $request->getSchemeAndHttpHost() . "/ktp/" . $filename;
-        $payload['ktp'] =  $path;
-        //----
-        $count = Identity::where('nik', '=', $payload['nik'])->count();
-    
-        if ($count == 0) {
-            $identity = Identity::query()->create($payload);
-            $file->move("ktp", $filename);
-        }else{
-            $query = Identity::query()
-            ->where("nik", $payload['nik'])
-            ->first();
-            $identity = Identity::find($query['id'])->update($payload);
-            // $identity = Identity::where('nik', $payload['nik'])->first();
-            // Identity::find($identity['id'])->update($payload);
-            $identity = $payload;
-            $file->move("ktp", $filename);
-            $lokasiimage = str_replace($request->getSchemeAndHttpHost(), '', $query->ktp);
-            $image = public_path($lokasiimage);
-            unlink($image);
+        $identity = Identity::where('nik', '=', $payload['nik'])->first();
+
+        if (!$identity) {
+            $payload["ktp"] = $request->file("ktp")->store("images", "public");
+            $identity = Identity::create($payload);
+            
+        } else {
+            if ($request->hasFile("ktp")) {
+                Storage::disk('public')->delete($identity->ktp);                            // hapus foto ktp sebelumnya
+                $payload["ktp"] = $request->file("ktp")->store("images", "public");
+            }
+            $identity->update($payload);
         }
         
         return response()->json([
             "status" => true,
-            "message" => "data tersimpan",
+            "message" => "data berhasil disimpan",
             "data" => $identity
         ]);
     }

@@ -65,7 +65,7 @@ class UserController extends Controller
             ]);
         }
         $count = User::where('email', '=', $payload['email'])->count();
-
+        
         if ($count > 0) {
             return response()->json([
                 "status" => false,
@@ -73,11 +73,11 @@ class UserController extends Controller
                 "data" => null
             ]);
         }
-
+        
         $user = User::query()->create($payload);
         return response()->json([
             "status" => true,
-            "message" => "data ".$user['email']." tersimpan",
+            "message" => "Akun ".$user['email']." berhasil dibuat",
             "data" => $user
         ]);
     }

@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Identity::query()->create([
-            "id_user" => "2",
+            "id_user" => "1",
             "nik" => "1234567812345678",
             "nama" => "Endjiansyah",
             "tempat_lahir" => "Jepara",

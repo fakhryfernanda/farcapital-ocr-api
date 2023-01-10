@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Identity;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -22,6 +23,29 @@ class DatabaseSeeder extends Seeder
             "password" => "hilih",
             "id_role" => "1",
             "remember_token" => Str::random(10)
+        ]);
+
+        Identity::query()->create([
+            "id_user" => "2",
+            "nik" => "1234567812345678",
+            "nama" => "Endjiansyah",
+            "tempat_lahir" => "Jepara",
+            "tanggal_lahir" => "2020-10-10",
+            "jenis_kelamin" => "1",
+            "alamat" => "Jalan gunung batu no 3",
+            "rt" => "004",
+            "rw" => "002",
+            "kelurahan" => "Tegal Alur",
+            "kecamatan" => "Gunung Batu",
+            "kota" => "Jepara",
+            "provinsi" => "Jawa Tengah",
+            "agama" => "Islam",
+            "status_perkawinan" => "Belum Kawin",
+            "pekerjaan" => "Pelajar/Mahasiswa",
+            "kewarganegaraan" => "WNI",
+            "golongan_darah" => "B",
+            "ktp" => "KTP.jpg",
+            "foto" => "foto.jpg"
         ]);
     }
 }

@@ -347,11 +347,21 @@ class IdcardController extends Controller
         }
     }
 
+    public function showAll()
+    {
+        $identity = Identity::query()->get();
+
+        return response()->json([
+            "status" => true,
+            "message" => "",
+            "data" => $identity
+        ]);
+    }
 
     public function index($id)
     {
         $identity = Identity::where('id_user', $id)->first();
-        
+
         if (!$identity) {
             return response()->json([
                 "status" => false,

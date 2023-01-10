@@ -15,6 +15,7 @@ class CreateIdentityTable extends Migration
     {
         Schema::create('identity', function (Blueprint $table) {
             $table->id();
+            $table->biginteger('id_user')->nullable();
             $table->string("nik", 16);
             $table->string("nama", 255);
             $table->string("tempat_lahir", 100);

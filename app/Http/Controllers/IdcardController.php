@@ -49,7 +49,7 @@ class IdcardController extends Controller
                 usort($new_pattern, function ($a, $b) {
                     similar_text('PROVINSI', $a, $percentA);
                     similar_text('PROVINSI', $b, $percentB);
-                    return $percentB - $percentA;
+                    // return $percentB - $percentA;
                 });
                 $cutter = array_search($new_pattern[0], $words1);
                 $new_pattern = array_slice($words1, $cutter);
@@ -347,10 +347,29 @@ class IdcardController extends Controller
         }
     }
 
-
-    public function index()
+    public function showAll()
     {
         $identity = Identity::query()->get();
+
+        return response()->json([
+            "status" => true,
+            "message" => "",
+            "data" => $identity
+        ]);
+    }
+
+    public function index($id)
+    {
+        $identity = Identity::where('id_user', $id)->first();
+
+        if (!$identity) {
+            return response()->json([
+                "status" => false,
+                "message" => "data tidak ditemukan",
+                "data" => null
+            ]);
+        }
+
         return response()->json([
             "status" => true,
             "message" => "",

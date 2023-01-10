@@ -372,7 +372,7 @@ class IdcardController extends Controller
             "nik" => 'required|min:16|max:16',
             "nama" => 'required',
             "tempat_lahir" => 'required',
-            "tanggal_lahir" => 'required|date',
+            "tanggal_lahir" => 'required',
             "jenis_kelamin" => 'required|max:1',
             "alamat" => 'required',
             "rt" => 'required|max:3',

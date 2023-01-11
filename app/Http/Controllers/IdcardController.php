@@ -354,7 +354,11 @@ class IdcardController extends Controller
                         $agama = $matches[0];
                         $pattern = "/[a-z]+/i";
                         preg_match($pattern, $agama, $matches);
-                        $agama = $matches[0];
+                        if (isset($matches[0])) {
+                            $agama = $matches[0];
+                        } else {
+                            $agama = '-';
+                        }
                     } else {
                         $agama = '-';
                     }

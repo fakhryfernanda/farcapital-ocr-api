@@ -6,12 +6,12 @@
     "license": "MIT",
     "require": {
         "php": "^7.3|^8.0",
-        "alimranahmed/laraocr": "^1.2",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
+        "thiagoalessio/tesseract_ocr": "^2.12",
         "yk/laravel-ocr": "^1.0"
     },
     "require-dev": {

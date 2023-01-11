@@ -13,13 +13,13 @@ class AuthController extends Controller
         $user = User::query()
             ->where("email", $request->input("email"))
             ->first();
-
+        
         // cek user berdasarkan email (availability user)
         if ($user == null) {
             return response()->json([
                 "status" => false,
                 "message" => "Email tidak ditemukan",
-                "data" => "email"
+                "data" => null
             ]);
         }
 
@@ -28,7 +28,7 @@ class AuthController extends Controller
             return response()->json([
                 "status" => false,
                 "message" => "Password salah",
-                "data" => "password"
+                "data" => null
             ]);
         }
 

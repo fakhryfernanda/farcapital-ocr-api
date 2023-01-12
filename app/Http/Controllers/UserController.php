@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ResetPassword;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -106,6 +108,27 @@ class UserController extends Controller
             "status" => true,
             "message" => "perubahan data tersimpan",
             "data" => $user
+        ]);
+    }
+    //----------(batas suci)----------
+    function reset(Request $request)
+    {
+        $email = $request->input('email');
+        $user = User::query()->where("email", $email)->first();
+        if (!isset($user)) {
+            return response()->json([
+                "status" => false,
+                "message" => "email tidak terdaftar",
+                "data" => null
+            ]);
+        }
+
+        Mail::to($email)->send(new ResetPassword());
+
+        return response()->json([
+            "status" => true,
+            "message" => "link terkirim ke ". $email,
+            "data" => null
         ]);
     }
 

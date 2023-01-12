@@ -32,6 +32,7 @@ Route::get("/identity/{id}", [IdcardController::class, "index"]);
 // ----------( user )---------
 Route::get("/user", [UserController::class, "index"]);
 Route::get("/user/{id}", [UserController::class, "show"]);
+Route::post("/user/reset", [UserController::class, "reset"]);
 Route::post("/user/add", [UserController::class, "store"]);
 Route::post("/user/{id}/edit", [UserController::class, "update"]);
 Route::post("/user/{id}/delete", [UserController::class, "destroy"]);

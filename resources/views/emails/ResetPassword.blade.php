@@ -1,7 +1,7 @@
 @component('mail::message')
 <p>Terimakasih telah menggunakan layanan OCR Farcapital<br>untuk mengubah password anda, silahkan klik tombol dibawah ini.</p>
 
-@component('mail::button', ['url' => ''])
+@component('mail::button', ['url' => $token])
 Ganti Password
 @endcomponent
 

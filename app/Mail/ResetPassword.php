@@ -16,9 +16,12 @@ class ResetPassword extends Mailable
      *
      * @return void
      */
-    public function __construct()
+
+    public $token;
+
+    public function __construct($token = 'anjay')
     {
-        //
+        $this->token = $token;
     }
 
     /**
@@ -26,8 +29,9 @@ class ResetPassword extends Mailable
      *
      * @return $this
      */
+    
     public function build()
     {
-        return $this->markdown('emails.ResetPassword');
+        return $this->markdown('emails.ResetPassword',['token' => $this->token]);
     }
 }

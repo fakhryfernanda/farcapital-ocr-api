@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ResetPassword;
+use App\Models\Password_resets;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -114,6 +115,7 @@ class UserController extends Controller
     function reset(Request $request)
     {
         $email = $request->input('email');
+        $token = substr(sha1(time()), 0, 16);
         $user = User::query()->where("email", $email)->first();
         if (!isset($user)) {
             return response()->json([
@@ -122,8 +124,12 @@ class UserController extends Controller
                 "data" => null
             ]);
         }
-
-        Mail::to($email)->send(new ResetPassword());
+        $payload = [
+            "email" => $email,
+            "token" => $token
+        ];
+        Password_resets::query()->create($payload);
+        Mail::to($email)->send(new ResetPassword($token));
 
         return response()->json([
             "status" => true,

@@ -32,7 +32,7 @@ class IdcardController extends Controller
 
             //konversi oleh tesseract
             $tesseract = new TesseractOCR($image);
-            $parsedText = ($tesseract)->dpi(72)->lang('ind')->run();
+            $parsedText = ($tesseract)->dpi(72)->lang('ind')->userWords('user.txt')->run();
 
             //merubah jadi array
             $new_pattern = preg_split('/\n/', $parsedText);
@@ -110,12 +110,16 @@ class IdcardController extends Controller
                     $isExisted = preg_match($pattern, $nik, $matches);
                     if ($isExisted === 1) {
 
-                        $a = explode(" ", $matches[0]);
-                        $nik = end($a);
+                        // $a = explode(" ", $matches[0]);
+                        // $nik = end($a);
+                        $nik = $matches[0];
+
+                        $nik = preg_replace("/[^0-9]/", "", $nik);
                         $pattern = "/[0-9]+/i";
                         $isExisted = preg_match($pattern, $nik, $matches);
                         if ($isExisted == 1) {
                             $nik = $matches[0];
+                            $nik = substr($nik, -16);
                         } else {
                             return response()->json([
                                 'status' => false,

@@ -17,11 +17,11 @@ class ResetPassword extends Mailable
      * @return void
      */
 
-    public $token;
+    public $link;
 
-    public function __construct($token = 'anjay')
+    public function __construct($link)
     {
-        $this->token = $token;
+        $this->link = $link;
     }
 
     /**
@@ -32,6 +32,7 @@ class ResetPassword extends Mailable
     
     public function build()
     {
-        return $this->markdown('emails.ResetPassword',['token' => $this->token]);
+        
+        return $this->markdown('emails.ResetPassword',$this->link);
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Password_resets;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Carbon;
 
 class UserController extends Controller
 {
@@ -112,9 +113,40 @@ class UserController extends Controller
         ]);
     }
     //----------(batas suci)----------
+
+    function getEmailby($token)
+    {
+        $passreset = Password_resets::query()
+            ->where("token", $token)
+            ->first();
+
+        if (!isset($passreset)) {
+            return response()->json([
+                "status" => false,
+                "message" => "data tidak ditemukan",
+                "data" => null
+            ]);
+        }
+        if($passreset['updated_at']->addHour(1) < now()){
+            return response()->json([
+                "status" => false,
+                "message" => "token kadaluarsa",
+                "data" => null
+            ]);
+        }
+        return response()->json([
+            "status" => true,
+            "message" => "data user",
+            "data" => $passreset
+        ]);
+    }
+    //----------(batas suci)----------
     function reset(Request $request)
     {
         $email = $request->input('email');
+        $link = $request->input('link');
+        $from = $request->input('from');
+        $target = $request->input('target');
         $token = substr(sha1(time()), 0, 16);
         $user = User::query()->where("email", $email)->first();
         if (!isset($user)) {
@@ -128,14 +160,78 @@ class UserController extends Controller
             "email" => $email,
             "token" => $token
         ];
-        Password_resets::query()->create($payload);
-        Mail::to($email)->send(new ResetPassword($token));
+        $from = $link.'/'.$from;
+        $target = $link.'/'.$target.'/'.$token;
+
+        $link = [
+            'from' => $from,
+            'target' => $target,
+        ];
+
+        $count = Password_resets::where('email', '=', $email)->count();
+
+        if ($count == 0) {
+            Password_resets::query()->create($payload);
+        }else{
+            Password_resets::query()->where('email', $email)->update($payload);
+        }
+        Mail::to($email)->send(new ResetPassword($link));
 
         return response()->json([
             "status" => true,
             "message" => "link terkirim ke ". $email,
-            "data" => null
+            "data" => [
+                'target' => $target
+                ]
         ]);
+    }
+    //----------(batas suci)----------
+    function changeforgotpass(Request $request){
+        $token = $request->input('token');
+        $email = $request->input('email');
+
+        $passreset = Password_resets::query()
+            ->where("token", $token)
+            ->first();
+
+        $user = User::query()
+            ->where("email", $email)
+            ->first();
+
+        if (!isset($passreset)) {
+            return response()->json([
+                "status" => false,
+                "message" => "token tidak ditemukan",
+                "data" => null
+            ]);
+        }
+
+        if (!isset($user)) {
+            return response()->json([
+                "status" => false,
+                "message" => "user tidak ditemukan",
+                "data" => null
+            ]);
+        }
+
+        $payload = [
+            'password'=> $request->input('password')
+        ];
+
+        $user->fill($payload);
+        $user->save();
+
+        Password_resets::query()->where('token', $token)->delete();
+
+        return response()->json([
+            "status" => true,
+            "message" => "perubahan data tersimpan",
+            "data" => $user
+        ]);
+
+
+
+
     }
 
     //----------(batas suci)----------

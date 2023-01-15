@@ -37,6 +37,10 @@ Route::post("/user/add", [UserController::class, "store"]);
 Route::post("/user/{id}/edit", [UserController::class, "update"]);
 Route::post("/user/{id}/delete", [UserController::class, "destroy"]);
 
+// ----------( user >> forgetpass )---------
+Route::get("/emailbytoken/{token}", [UserController::class, "getEmailby"]);
+Route::post("/changeforgotpass", [UserController::class, "changeforgotpass"]);
+
 // ----------( role )---------
 Route::get("/role", [RoleController::class, "index"]);
 

@@ -54,22 +54,24 @@ class UserController extends Controller
     //----------(batas suci)----------
     function store(Request $request)
     {
+        $token = substr(sha1(time()), 0, 16);
         $payload = $request->all();
+        $payload['token'] = $token;
         if (!isset($payload['email'])) {
             return response()->json([
                 "status" => false,
                 "message" => "email belum diisi",
-                "data" => null
+                "data" => 'email'
             ]);
         }
         if (!isset($payload['password'])) {
             return response()->json([
                 "status" => false,
                 "message" => "password belum diisi",
-                "data" => null
+                "data" => 'password'
             ]);
         }
-        // dd($payload);
+
         $count = User::where('email', '=', $payload['email'])->count();
 
         if ($count > 0) {
@@ -81,10 +83,45 @@ class UserController extends Controller
         }
 
         $user = User::query()->create($payload);
-        // dd($user);
+        
         return response()->json([
             "status" => true,
-            "message" => "Akun " . $user['email'] . " berhasil dibuat",
+            "message" => "Akun " . $user['email'] . " berhasil dibuat, silahkan konfirmasi melalui email anda",
+            "data" => $user
+        ]);
+    }
+    //----------(batas suci)----------
+    function emailRegist($token)
+    {
+        $user = user::query()
+            ->where("token", $token)
+            ->first();
+
+        if (!isset($user)) {
+            return response()->json([
+                "status" => false,
+                "message" => "data tidak ditemukan",
+                "data" => null
+            ]);
+        }
+        if($user['updated_at']->addHour(1) < now()){
+            return response()->json([
+                "status" => false,
+                "message" => "token kadaluarsa",
+                "data" => null
+            ]);
+        }
+
+        $payload = [
+            'valid' => 1,
+            'token' => null
+        ];
+        $user->fill($payload);
+        $user->save();
+
+        return response()->json([
+            "status" => true,
+            "message" => "berhasil registrasi akun",
             "data" => $user
         ]);
     }
@@ -112,8 +149,8 @@ class UserController extends Controller
             "data" => $user
         ]);
     }
-    //----------(batas suci)----------
 
+    //----------(batas suci)----------
     function getEmailby($token)
     {
         $passreset = Password_resets::query()
@@ -140,6 +177,7 @@ class UserController extends Controller
             "data" => $passreset
         ]);
     }
+
     //----------(batas suci)----------
     function reset(Request $request)
     {

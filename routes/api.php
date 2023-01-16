@@ -32,9 +32,17 @@ Route::get("/identity/{id}", [IdcardController::class, "index"]);
 // ----------( user )---------
 Route::get("/user", [UserController::class, "index"]);
 Route::get("/user/{id}", [UserController::class, "show"]);
+Route::post("/user/reset", [UserController::class, "reset"]);
 Route::post("/user/add", [UserController::class, "store"]);
 Route::post("/user/{id}/edit", [UserController::class, "update"]);
 Route::post("/user/{id}/delete", [UserController::class, "destroy"]);
+
+// ----------( user >> validemail )---------
+Route::post("/emailregist/{token}", [UserController::class, "emailRegist"]);
+
+// ----------( user >> forgetpass )---------
+Route::get("/emailbytoken/{token}", [UserController::class, "getEmailby"]);
+Route::post("/changeforgotpass", [UserController::class, "changeforgotpass"]);
 
 // ----------( role )---------
 Route::get("/role", [RoleController::class, "index"]);

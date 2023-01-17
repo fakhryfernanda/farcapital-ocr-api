@@ -125,6 +125,51 @@ class IdcardController extends Controller
                     $provinsi = preg_replace("/[^a-zA-Z ]/", "", $provinsi);
                     //menghilangkan spasi di depan dan belakang kata
                     $provinsi = trim($provinsi);
+                    $provinsi_ktp = [
+                        'NANGGROE ACEH DARUSSALAM',
+                        'SUMATERA UTARA',
+                        'SUMATERA SELATAN',
+                        'SUMATERA BARAT',
+                        'BENGKULU',
+                        'RIAU',
+                        'KEPULAUAN RIAU',
+                        'JAMBI',
+                        'LAMPUNG',
+                        'BANGKA BELITUNG',
+                        'KALIMANTAN BARAT',
+                        'KALIMANTAN TIMUR',
+                        'KALIMANTAN SELATAN',
+                        'KALIMANTAN TENGAH',
+                        'KALIMANTAN UTARA',
+                        'BANTEN',
+                        'DKI JAKARTA',
+                        'JAWA BARAT',
+                        'JAWA TENGAH',
+                        'DAERAH ISTIMEWA YOGYAKARTA',
+                        'JAWA TIMUR',
+                        'BALI',
+                        'NUSA TENGGARA TIMUR',
+                        'NUSA TENGGARA BARAT',
+                        'GORONTALO',
+                        'SULAWESI BARAT',
+                        'SULAWESI TENGAH',
+                        'SULAWESI UTARA',
+                        'SULAWESI TENGGARA',
+                        'SULAWESI SELATAN',
+                        'MALUKU UTARA',
+                        'MALUKU',
+                        'PAPUA BARAT',
+                        'PAPUA',
+                        'PAPUA TENGAH',
+                        'PAPUA PEGUNUNGAN'
+                    ];
+                    usort($provinsi_ktp, function ($a, $b) use ($provinsi) {
+
+                        similar_text($provinsi, $a, $percentA);
+                        similar_text($provinsi, $b, $percentB);
+                        return $percentB - $percentA;
+                    });
+                    $provinsi = $provinsi_ktp[0];
                 } else {
                     //jika tesseract belum bisa mendeteksi kata setelah provinsi maka variable provinsi dikosongkan
                     $provinsi = '';

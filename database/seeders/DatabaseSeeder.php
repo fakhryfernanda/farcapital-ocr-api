@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $this->call(RoleSeeder::class);
-        // \App\Models\User::factory(10)->create();
+
         User::query()->create([
             "email" => "hilih@gmail.com",
             "password" => "hilih",
@@ -25,8 +25,15 @@ class DatabaseSeeder extends Seeder
             "remember_token" => Str::random(10)
         ]);
 
+        User::query()->create([
+            "email" => "endji@gmail.com",
+            "password" => "endji",
+            "id_role" => "2",
+            "remember_token" => Str::random(10)
+        ]);
+
         Identity::query()->create([
-            "id_user" => "1",
+            "id_user" => "2",
             "nik" => "1234567812345678",
             "nama" => "Endjiansyah",
             "tempat_lahir" => "Jepara",

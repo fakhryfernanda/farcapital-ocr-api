@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use function PHPUnit\Framework\matches;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 
 class IdcardController extends Controller
@@ -31,8 +32,10 @@ class IdcardController extends Controller
         if (isset($image)) {
 
             //konversi oleh tesseract
-            $tesseract = new TesseractOCR($image);
-            $parsedText = ($tesseract)->dpi(72)->lang('ind')->userWords('user.txt')->run();
+
+            $tesseract = new TesseractOCR($image->getPathname());
+
+            $parsedText = ($tesseract)->dpi(72)->userWords('user.txt')->run();
 
             //merubah jadi array
             $new_pattern = preg_split('/\n/', $parsedText);

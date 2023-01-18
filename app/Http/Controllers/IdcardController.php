@@ -683,9 +683,11 @@ class IdcardController extends Controller
                     similar_text("WNI", $kewarganegaraan[0], $percent);
                     if ($percent > 50) {
                         $kewarganegaraan = "WNI";
+                    } elseif (strlen($kewarganegaraan[0]) < 4) {
+                        $kewarganegaraan = "WNI";
                     }
                 } else {
-                    $kewarganegaraan = '';
+                    $kewarganegaraan = 'WNI';
                 }
 
                 $ktp = [

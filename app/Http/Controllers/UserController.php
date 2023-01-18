@@ -179,12 +179,10 @@ class UserController extends Controller
     }
 
     //----------(batas suci)----------
-    function reset(Request $request)
+    function forgotpass(Request $request)
     {
         $email = $request->input('email');
         $link = $request->input('link');
-        $from = $request->input('from');
-        $target = $request->input('target');
         $token = substr(sha1(time()), 0, 16);
         $user = User::query()->where("email", $email)->first();
         if (!isset($user)) {
@@ -198,8 +196,8 @@ class UserController extends Controller
             "email" => $email,
             "token" => $token
         ];
-        $from = $link.'/'.$from;
-        $target = $link.'/'.$target.'/'.$token;
+        $from = $link;
+        $target = $link.'/'.$token;
 
         $link = [
             'from' => $from,

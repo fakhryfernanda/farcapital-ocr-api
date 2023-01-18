@@ -19,7 +19,7 @@ class AuthController extends Controller
             return response()->json([
                 "status" => false,
                 "message" => "Email tidak ditemukan",
-                "data" => null
+                "data" => 'email'
             ]);
         }
 
@@ -28,9 +28,17 @@ class AuthController extends Controller
             return response()->json([
                 "status" => false,
                 "message" => "Password salah",
-                "data" => null
+                "data" => 'password'
             ]);
         }
+
+        // if($user['valid'] == 0){
+        //     return response()->json([
+        //         "status" => false,
+        //         "message" => "Akun belum tervalidasi",
+        //         "data" => 'invalid'
+        //     ]);
+        // }
 
         // buat token untuk authorisasi
         $token = $user->createToken("auth_token");

@@ -345,10 +345,24 @@ class IdcardController extends Controller
                             $gender = 1;
                         }
                     } else {
-                        $gender = '';
+                        $gender =  substr($nik, 6, 2);
+                        $gender = (int)$gender;
+
+                        if ($gender > 32) {
+                            $gender = 0;
+                        } else {
+                            $gender = 1;
+                        }
                     }
                 } else {
-                    $gender = '';
+                    $gender =  substr($nik, 6, 2);
+                    $gender = (int)$gender;
+
+                    if ($gender > 32) {
+                        $gender = 0;
+                    } else {
+                        $gender = 1;
+                    }
                 }
 
                 // -----batas suci-------

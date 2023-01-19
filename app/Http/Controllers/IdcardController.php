@@ -315,7 +315,7 @@ class IdcardController extends Controller
                 $isExisted = preg_match($pattern, $goldar, $matches);
                 if ($isExisted == 1) {
 
-                    $pattern = "/[ABO-]+/i";
+                    $pattern = "/[ABO]+/i";
                     $isExisted = preg_match($pattern, $matches[0], $matches);
                     if ($isExisted == 1) {
                         $golongan_darah = $matches[0];
@@ -672,6 +672,7 @@ class IdcardController extends Controller
                     $kewarganegaraan[0] = "Kewarganegaraan";
                 }
                 $kewarganegaraan = implode(" ", $kewarganegaraan);
+
                 $isExisted = preg_match($pattern, $kewarganegaraan, $matches);
                 if ($isExisted == 1) {
                     $kewarganegaraan = $matches[0];
@@ -766,6 +767,7 @@ class IdcardController extends Controller
     {
         $payload = $request->all();
 
+
         $validator = Validator::make($payload, [
             "nik" => 'required|min:16|max:16',
             "nama" => 'required',
@@ -798,7 +800,15 @@ class IdcardController extends Controller
         $identity = Identity::where('nik', '=', $payload['nik'])->first();
 
         if (!$identity) {
-            $payload["ktp"] = $request->file("ktp")->store("images", "public");
+
+            $img =  $request->file("ktp");
+            $img = Image::make($img);
+
+            //watermark
+            $img->text('This image is property of farcapital');
+
+            $payload["ktp"] =  $img->store("images", "public");
+
             $identity = Identity::create($payload);
         } else {
             if ($request->hasFile("ktp")) {

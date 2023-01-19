@@ -345,10 +345,24 @@ class IdcardController extends Controller
                             $gender = 1;
                         }
                     } else {
-                        $gender = '';
+                        $gender =  substr($nik, 6, 2);
+                        $gender = (int)$gender;
+
+                        if ($gender > 32) {
+                            $gender = 0;
+                        } else {
+                            $gender = 1;
+                        }
                     }
                 } else {
-                    $gender = '';
+                    $gender =  substr($nik, 6, 2);
+                    $gender = (int)$gender;
+
+                    if ($gender > 32) {
+                        $gender = 0;
+                    } else {
+                        $gender = 1;
+                    }
                 }
 
                 // -----batas suci-------
@@ -669,9 +683,11 @@ class IdcardController extends Controller
                     similar_text("WNI", $kewarganegaraan[0], $percent);
                     if ($percent > 50) {
                         $kewarganegaraan = "WNI";
+                    } elseif (strlen($kewarganegaraan[0]) < 4) {
+                        $kewarganegaraan = "WNI";
                     }
                 } else {
-                    $kewarganegaraan = '';
+                    $kewarganegaraan = 'WNI';
                 }
 
                 $ktp = [

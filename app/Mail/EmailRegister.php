@@ -16,11 +16,13 @@ class EmailRegister extends Mailable
      *
      * @return void
      */
-    public function __construct()
-    {
-        //
-    }
 
+     public $data;
+
+     public function __construct($data)
+     {
+         $this->data = $data;
+     }
     /**
      * Build the message.
      *
@@ -28,6 +30,6 @@ class EmailRegister extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.EmailRegister');
+        return $this->markdown('emails.EmailRegister',$this->data);
     }
 }

@@ -34,6 +34,7 @@ class IdcardController extends Controller
         if (isset($image)) {
 
             //konversi oleh tesseract
+
             $tesseract = new TesseractOCR($image);
             $parsedText = ($tesseract)->dpi(72)->lang('ind')->userWords('user.txt')->run();
 

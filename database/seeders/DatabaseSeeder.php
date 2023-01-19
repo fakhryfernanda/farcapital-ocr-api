@@ -22,14 +22,14 @@ class DatabaseSeeder extends Seeder
             "email" => "hilih@gmail.com",
             "password" => "hilih",
             "id_role" => "1",
-            "remember_token" => Str::random(10)
+            "valid" => "1"
         ]);
 
         User::query()->create([
             "email" => "endji@gmail.com",
             "password" => "endji",
             "id_role" => "2",
-            "remember_token" => Str::random(10)
+            "valid" => "1"
         ]);
 
         Identity::query()->create([

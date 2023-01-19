@@ -83,7 +83,7 @@ class UserController extends Controller
         }
 
         $user = User::query()->create($payload);
-        
+
         return response()->json([
             "status" => true,
             "message" => "Akun " . $user['email'] . " berhasil dibuat, silahkan konfirmasi melalui email anda",
@@ -104,7 +104,7 @@ class UserController extends Controller
                 "data" => null
             ]);
         }
-        if($user['updated_at']->addHour(1) < now()){
+        if ($user['updated_at']->addHour(1) < now()) {
             return response()->json([
                 "status" => false,
                 "message" => "token kadaluarsa",
@@ -164,7 +164,7 @@ class UserController extends Controller
                 "data" => null
             ]);
         }
-        if($passreset['updated_at']->addHour(1) < now()){
+        if ($passreset['updated_at']->addHour(1) < now()) {
             return response()->json([
                 "status" => false,
                 "message" => "token kadaluarsa",
@@ -197,7 +197,7 @@ class UserController extends Controller
             "token" => $token
         ];
         $from = $link;
-        $target = $link.'/'.$token;
+        $target = $link . '/' . $token;
 
         $link = [
             'from' => $from,
@@ -208,21 +208,22 @@ class UserController extends Controller
 
         if ($count == 0) {
             Password_resets::query()->create($payload);
-        }else{
+        } else {
             Password_resets::query()->where('email', $email)->update($payload);
         }
         Mail::to($email)->send(new ResetPassword($link));
 
         return response()->json([
             "status" => true,
-            "message" => "link terkirim ke ". $email,
+            "message" => "link terkirim ke " . $email,
             "data" => [
                 'target' => $target
-                ]
+            ]
         ]);
     }
     //----------(batas suci)----------
-    function changeforgotpass(Request $request){
+    function changeforgotpass(Request $request)
+    {
         $token = $request->input('token');
         $email = $request->input('email');
 
@@ -251,7 +252,7 @@ class UserController extends Controller
         }
 
         $payload = [
-            'password'=> $request->input('password')
+            'password' => $request->input('password')
         ];
 
         $user->fill($payload);
@@ -264,10 +265,6 @@ class UserController extends Controller
             "message" => "perubahan data tersimpan",
             "data" => $user
         ]);
-
-
-
-
     }
 
     //----------(batas suci)----------

@@ -798,22 +798,23 @@ class IdcardController extends Controller
             ]);
         }
 
-        $identity = Identity::where('nik', '=', $payload['nik'])->first();
+        $nik = Identity::where('nik', '=', $payload['nik'])->first();
+        $identity = Identity::where('id_user', '=', $payload['id_user'])->first();
 
-        if (!$identity) {
+        if (!$nik && !$identity) {
 
-            $img =  $request->file("ktp");
-            $img = Image::make($img);
-
+            // $img =  $request->file("ktp");
+            // $img = Image::make($img);
+            
             //watermark
-            $img->text('This image is property of farcapital');
-
-            $payload["ktp"] =  $img->store("images", "public");
-
+            // $img->text('This image is property of farcapital');
+            
+            $payload["ktp"] =   $request->file("ktp")->store("images", "public");
+            
             $identity = Identity::create($payload);
         } else {
             if ($request->hasFile("ktp")) {
-                Storage::disk('public')->delete($identity->ktp);                            // hapus foto ktp sebelumnya
+                Storage::disk('public')->delete($identity->ktp);
                 $payload["ktp"] = $request->file("ktp")->store("images", "public");
             }
             $identity->update($payload);

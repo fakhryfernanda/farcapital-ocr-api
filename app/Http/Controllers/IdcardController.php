@@ -84,8 +84,6 @@ class IdcardController extends Controller
                 }
             }
 
-
-
             //mencari array yang berisi provinsi atau setidaknya paling sama dengan kata provinsi
             $words1 = $new_pattern;
             usort($new_pattern, function ($a, $b) {
@@ -129,6 +127,51 @@ class IdcardController extends Controller
                     $provinsi = preg_replace("/[^a-zA-Z ]/", "", $provinsi);
                     //menghilangkan spasi di depan dan belakang kata
                     $provinsi = trim($provinsi);
+                    $provinsi_ktp = [
+                        'NANGGROE ACEH DARUSSALAM',
+                        'SUMATERA UTARA',
+                        'SUMATERA SELATAN',
+                        'SUMATERA BARAT',
+                        'BENGKULU',
+                        'RIAU',
+                        'KEPULAUAN RIAU',
+                        'JAMBI',
+                        'LAMPUNG',
+                        'BANGKA BELITUNG',
+                        'KALIMANTAN BARAT',
+                        'KALIMANTAN TIMUR',
+                        'KALIMANTAN SELATAN',
+                        'KALIMANTAN TENGAH',
+                        'KALIMANTAN UTARA',
+                        'BANTEN',
+                        'DKI JAKARTA',
+                        'JAWA BARAT',
+                        'JAWA TENGAH',
+                        'DAERAH ISTIMEWA YOGYAKARTA',
+                        'JAWA TIMUR',
+                        'BALI',
+                        'NUSA TENGGARA TIMUR',
+                        'NUSA TENGGARA BARAT',
+                        'GORONTALO',
+                        'SULAWESI BARAT',
+                        'SULAWESI TENGAH',
+                        'SULAWESI UTARA',
+                        'SULAWESI TENGGARA',
+                        'SULAWESI SELATAN',
+                        'MALUKU UTARA',
+                        'MALUKU',
+                        'PAPUA BARAT',
+                        'PAPUA',
+                        'PAPUA TENGAH',
+                        'PAPUA PEGUNUNGAN'
+                    ];
+                    usort($provinsi_ktp, function ($a, $b) use ($provinsi) {
+
+                        similar_text($provinsi, $a, $percentA);
+                        similar_text($provinsi, $b, $percentB);
+                        return $percentB - $percentA;
+                    });
+                    $provinsi = $provinsi_ktp[0];
                 } else {
                     //jika tesseract belum bisa mendeteksi kata setelah provinsi maka variable provinsi dikosongkan
                     $provinsi = '';
@@ -241,7 +284,7 @@ class IdcardController extends Controller
                         $tanggal_lahir = array_reverse($tanggal_lahir);
                         $tanggal_lahir = implode("-", $tanggal_lahir);
                     } else {
-                        $tanggal_lahir = '-';
+                        $tanggal_lahir = '';
                     }
 
                     // -----batas suci-------
@@ -261,11 +304,11 @@ class IdcardController extends Controller
 
                         $tempat_lahir = trim($tempat_lahir);
                     } else {
-                        $tempat_lahir = '-';
+                        $tempat_lahir = '';
                     }
                 } else {
-                    $tanggal_lahir = "-";
-                    $tempat_lahir = "-";
+                    $tanggal_lahir = "";
+                    $tempat_lahir = "";
                 }
 
                 // -----batas suci-------
@@ -273,7 +316,7 @@ class IdcardController extends Controller
                 $goldar = $new_pattern[5];
                 $isExisted = preg_match($pattern, $goldar, $matches);
                 if ($isExisted == 1) {
-                    // dd($matches);
+
                     $pattern = "/[ABO-]+/i";
                     $isExisted = preg_match($pattern, $matches[0], $matches);
                     if ($isExisted == 1) {
@@ -290,13 +333,13 @@ class IdcardController extends Controller
                 $goldar = $new_pattern[5];
                 $isExisted = preg_match($pattern, $goldar, $matches);
                 if ($isExisted == 1) {
-                    // dd($matches);
+
                     $pattern = "/[LP]+/";
                     $isExisted = preg_match($pattern, $matches[0], $matches);
                     if ($isExisted == 1) {
                         $gender = $matches[0];
 
-                        // dd($gender);
+
 
                         if ($gender == "p" || $gender == "P") {
                             $gender = 0;
@@ -304,10 +347,24 @@ class IdcardController extends Controller
                             $gender = 1;
                         }
                     } else {
-                        $gender = '-';
+                        $gender =  substr($nik, 6, 2);
+                        $gender = (int)$gender;
+
+                        if ($gender > 32) {
+                            $gender = 0;
+                        } else {
+                            $gender = 1;
+                        }
                     }
                 } else {
-                    $gender = '-';
+                    $gender =  substr($nik, 6, 2);
+                    $gender = (int)$gender;
+
+                    if ($gender > 32) {
+                        $gender = 0;
+                    } else {
+                        $gender = 1;
+                    }
                 }
 
                 // -----batas suci-------
@@ -335,7 +392,7 @@ class IdcardController extends Controller
 
                     $alamat = implode(" ", $attempt[0]);
                 } else {
-                    $alamat = '-';
+                    $alamat = '';
                 }
 
                 // -----batas suci-------
@@ -378,7 +435,7 @@ class IdcardController extends Controller
 
                     $kelurahan = implode(" ", $attempt[0]);
                 } else {
-                    $kelurahan = '-';
+                    $kelurahan = '';
                 }
 
                 // -----batas suci-------
@@ -401,7 +458,7 @@ class IdcardController extends Controller
 
                     $kecamatan = implode(" ", $attempt[0]);
                 } else {
-                    $kecamatan = '-';
+                    $kecamatan = '';
                 }
                 // $kec = explode(":", $new_pattern[9]);
                 // $kec = trim($kec[1], " "); //RIP
@@ -418,7 +475,7 @@ class IdcardController extends Controller
                     $agama[0] = "Agama";
                 }
                 $agama = implode(" ", $agama);
-                // dd($agama);
+
                 $isExisted = preg_match($pattern, $agama, $matches);
                 if ($isExisted == 1) {
                     $agama = $matches[0];
@@ -426,11 +483,27 @@ class IdcardController extends Controller
                     preg_match($pattern, $agama, $matches);
                     if (isset($matches[0])) {
                         $agama = $matches[0];
+
+                        $agama_ktp = [
+                            'ISLAM',
+                            'KRISTEN',
+                            'KATOLIK',
+                            'BUDHA',
+                            'HINDU',
+                            'KONGHUCHU'
+                        ];
+                        usort($agama_ktp, function ($a, $b) use ($agama) {
+
+                            similar_text($agama, $a, $percentA);
+                            similar_text($agama, $b, $percentB);
+                            return $percentB - $percentA;
+                        });
+                        $agama = $agama_ktp[0];
                     } else {
-                        $agama = '-';
+                        $agama = '';
                     }
                 } else {
-                    $agama = '-';
+                    $agama = '';
                 }
 
                 // -----batas suci-------
@@ -446,11 +519,28 @@ class IdcardController extends Controller
                     $perkawinan = array_slice($attempt[0], 0, 2);
 
                     $perkawinan = implode(" ", $perkawinan);
+
+                    $perkawinan_ktp = [
+                        'KAWIN',
+                        'BELUM KAWIN',
+                        'CERAI HIDUP',
+                        'CERAI MATI'
+                    ];
+
+                    usort($perkawinan_ktp, function ($a, $b) use ($perkawinan) {
+
+                        similar_text($perkawinan, $a, $percentA);
+                        similar_text($perkawinan, $b, $percentB);
+                        return $percentB - $percentA;
+                    });
+                    $perkawinan = $perkawinan_ktp[0];
                 } else {
-                    $perkawinan = '-';
+                    $perkawinan = '';
                 }
 
                 // -----batas suci-------
+
+
                 $pattern = "/(?<=kerjaan ).*/i";
                 $pekerjaan = $new_pattern[12];
                 $pekerjaan = trim($pekerjaan);
@@ -468,8 +558,109 @@ class IdcardController extends Controller
                     preg_match_all($pattern, $pekerjaan, $attempt);
 
                     $pekerjaan = implode(" ", $attempt[0]);
+
+
+                    $pekerjaan_ktp =
+                        [
+                            'MENGURUS RUMAH TANGGA',
+                            'BELUM/ TIDAK BEKERJA',
+                            'PELAJAR/ MAHASISWA',
+                            'PENSIUNAN',
+                            'PEGAWAI NEGERI SIPIL',
+                            'TENTARA NASIONAL INDONESIA',
+                            'KEPOLISISAN RI',
+                            'PERDAGANGAN',
+                            'PETANI/ PEKEBUN',
+                            'PETERNAK',
+                            'NELAYAN/ PERIKANAN',
+                            'INDUSTRI',
+                            'KONSTRUKSI',
+                            'TRANSPORTASI',
+                            'KARYAWAN SWASTA',
+                            'KARYAWAN BUMN',
+                            'KARYAWAN BUMD',
+                            'KARYAWAN HONORER',
+                            'BURUH HARIAN LEPAS',
+                            'BURUH TANI/ PERKEBUNAN',
+                            'BURUH NELAYAN/ PERIKANAN',
+                            'BURUH PETERNAKAN',
+                            'PEMBANTU RUMAH TANGGA',
+                            'TUKANG CUKUR',
+                            'TUKANG LISTRIK',
+                            'TUKANG BATU',
+                            'TUKANG KAYU',
+                            'TUKANG SOL SEPATU',
+                            'TUKANG LAS/ PANDAI BESI',
+                            'TUKANG JAHIT',
+                            'TUKANG GIGI',
+                            'PENATA RIAS',
+                            'PENATA BUSANA',
+                            'PENATA RAMBUT',
+                            'MEKANIK',
+                            'SENIMAN',
+                            'TABIB',
+                            'PARAJI',
+                            'PERANCANG BUSANA',
+                            'PENTERJEMAH',
+                            'IMAM MASJID',
+                            'PENDETA',
+                            'PASTOR',
+                            'WARTAWAN',
+                            'USTADZ/ MUBALIGH',
+                            'JURU MASAK',
+                            'PROMOTOR ACARA',
+                            'ANGGOTA DPR-RI',
+                            'ANGGOTA DPD',
+                            'ANGGOTA BPK',
+                            'PRESIDEN',
+                            'WAKIL PRESIDEN',
+                            'ANGGOTA MAHKAMAH KONSTITUSI',
+                            'ANGGOTA KABINET/ KEMENTERIAN',
+                            'DUTA BESAR',
+                            'GUBERNUR',
+                            'WAKIL GUBERNUR',
+                            'BUPATI',
+                            'WAKIL BUPATI',
+                            'WALIKOTA',
+                            'WAKIL WALIKOTA',
+                            'ANGGOTA DPRD PROVINSI',
+                            'ANGGOTA DPRD KABUPATEN/ KOTA',
+                            'DOSEN',
+                            'GURU',
+                            'PILOT',
+                            'PENGACARA',
+                            'NOTARIS',
+                            'ARSITEK',
+                            'AKUNTAN',
+                            'KONSULTAN',
+                            'DOKTER',
+                            'BIDAN',
+                            'PERAWAT',
+                            'APOTEKER',
+                            'PSIKIATER/ PSIKOLOG',
+                            'PENYIAR TELEVISI',
+                            'PENYIAR RADIO',
+                            'PELAUT',
+                            'PENELITI',
+                            'SOPIR',
+                            'PIALANG',
+                            'PARANORMAL',
+                            'PEDAGANG',
+                            'PERANGKAT DESA',
+                            'KEPALA DESA',
+                            'BIARAWATI',
+                            'WIRASWASTA'
+                        ];
+                    usort($pekerjaan_ktp, function ($a, $b) use ($pekerjaan) {
+
+                        similar_text($pekerjaan, $a, $percentA);
+                        similar_text($pekerjaan, $b, $percentB);
+                        return $percentB - $percentA;
+                    });
+
+                    $pekerjaan = $pekerjaan_ktp[0];
                 } else {
-                    $pekerjaan = '-';
+                    $pekerjaan = '';
                 }
 
                 // -----batas suci-------
@@ -490,8 +681,15 @@ class IdcardController extends Controller
                     preg_match($pattern, $kewarganegaraan, $attempt);
 
                     $kewarganegaraan = $attempt[0];
+
+                    similar_text("WNI", $kewarganegaraan[0], $percent);
+                    if ($percent > 50) {
+                        $kewarganegaraan = "WNI";
+                    } elseif (strlen($kewarganegaraan[0]) < 4) {
+                        $kewarganegaraan = "WNI";
+                    }
                 } else {
-                    $kewarganegaraan = '-';
+                    $kewarganegaraan = 'WNI';
                 }
 
                 $ktp = [

@@ -802,13 +802,13 @@ class IdcardController extends Controller
 
         if (!$identity) {
 
-            $img =  $request->file("ktp");
-            $img = Image::make($img);
+            // $img =  $request->file("ktp");
+            // $img = Image::make($img);
 
             //watermark
-            $img->text('This image is property of farcapital');
+            // $img->text('This image is property of farcapital');
 
-            $payload["ktp"] =  $img->store("images", "public");
+            $payload["ktp"] =   $request->file("ktp")->store("images", "public");
 
             $identity = Identity::create($payload);
         } else {

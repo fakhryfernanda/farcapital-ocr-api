@@ -32,13 +32,13 @@ class AuthController extends Controller
             ]);
         }
 
-        // if($user['valid'] == 0){
-        //     return response()->json([
-        //         "status" => false,
-        //         "message" => "Akun belum tervalidasi",
-        //         "data" => 'invalid'
-        //     ]);
-        // }
+        if($user['valid'] == 0){
+            return response()->json([
+                "status" => false,
+                "message" => "Akun belum tervalidasi",
+                "data" => 'invalid'
+            ]);
+        }
 
         // buat token untuk authorisasi
         $token = $user->createToken("auth_token");

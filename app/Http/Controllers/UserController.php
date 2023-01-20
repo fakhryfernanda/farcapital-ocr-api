@@ -154,10 +154,8 @@ class UserController extends Controller
     //----------(batas suci)----------
     function emailRegist($token)
     {
-        $user = user::query()
-            ->where("token", $token)
+        $user = User::where("token", $token)
             ->first();
-
         if (!isset($user)) {
             return response()->json([
                 "status" => false,
@@ -165,7 +163,6 @@ class UserController extends Controller
                 "data" => null
             ]);
         }
-
 
         $payload = [
             'valid' => 1,

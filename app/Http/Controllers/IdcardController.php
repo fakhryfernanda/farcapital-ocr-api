@@ -2,11 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
+
 use thiagoalessio\TesseractOCR\TesseractOCR;
 use OCR;
 use App\Models\Identity;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\City;
+use App\Models\District;
+use App\Models\Province;
+use App\Models\Village;
+
 use function PHPUnit\Framework\matches;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -27,6 +35,7 @@ class IdcardController extends Controller
 
     public function readImage(Request $request)
     {
+
         //ambil image dari reques
         $image = $request->file('image');
 
@@ -126,6 +135,9 @@ class IdcardController extends Controller
                     $provinsi = preg_replace("/[^a-zA-Z ]/", "", $provinsi);
                     //menghilangkan spasi di depan dan belakang kata
                     $provinsi = trim($provinsi);
+
+
+                    //array untuk replace kata provinsi yang masih kurang tepat
                     $provinsi_ktp = [
                         'NANGGROE ACEH DARUSSALAM',
                         'SUMATERA UTARA',
@@ -164,48 +176,88 @@ class IdcardController extends Controller
                         'PAPUA TENGAH',
                         'PAPUA PEGUNUNGAN'
                     ];
-                    usort($provinsi_ktp, function ($a, $b) use ($provinsi) {
 
+                    //mencari kata provinsi yang paling sama dengan data yang didapat dari scan tesseract 
+                    usort($provinsi_ktp, function ($a, $b) use ($provinsi) {
                         similar_text($provinsi, $a, $percentA);
                         similar_text($provinsi, $b, $percentB);
                         return $percentB - $percentA;
                     });
-                    $provinsi = $provinsi_ktp[0];
+                    $newprovinsi = $provinsi_ktp[0];
+                    //jika persamaan ktp lebih dari 50% maka data ktp direplace dengan data yang didapat dari array
+                    similar_text($provinsi, $newprovinsi, $percent);
+                    if ($percent > 50) {
+                        $provinsi = $newprovinsi;
+                    }
                 } else {
                     //jika tesseract belum bisa mendeteksi kata setelah provinsi maka variable provinsi dikosongkan
                     $provinsi = '';
                 }
 
                 // -----batas kota-------
-                $kota = $new_pattern[1];
                 //array index 1 berisi kota
+                $kota = $new_pattern[1];
                 //mengambil string yang berisi huruf dan spasi saja
                 $kota = preg_replace("/[^a-zA-Z ]/", "", $kota);
 
                 //menghilangkan spasi di depan dan belakang string
                 $kota = trim($kota);
 
+                //ambil kode provinsi untuk menjadi parameter pencarian di table kota
+                $data_provinsi = Province::where('name', 'LIKE', '%' . $provinsi . '%')->first();
+
+                //apabila data provinsi kosong maka kata kota tidak di replace. jika tidak kosong maka lanjut ke proses selanjutnya
+                if ($data_provinsi !== null) {
+                    $result = $data_provinsi->code;
+                    //mencari array kota yang sesuai dengan kode provinsi
+                    $kota_ktp = City::where('province_code', $result)->get();
+
+
+                    foreach ($kota_ktp as $kotaktp) {
+                        $ktpkota[] = $kotaktp->name;
+                    }
+
+                    //mencari kata provinsi yang paling sama dengan data yang didapat dari scan tesseract 
+                    usort($ktpkota, function ($a, $b) use ($kota) {
+                        similar_text($kota, $a, $percentA);
+                        similar_text($kota, $b, $percentB);
+                        return $percentB - $percentA;
+                    });
+
+                    $newkota = $ktpkota[0];
+                    //jika array ke 0 yang didapat di atas persamaanya lebih dari 50 persen maka kota di replace. jika tidak sama maka kata kota tetap memakai data yang didapat
+                    similar_text($kota, $newkota, $percent);
+                    if ($percent > 50) {
+                        $kota = $newkota;
+                    }
+                }
+
 
                 // -----batas NIK-------
                 //nik berada di array index[2]
-
                 $nik = $new_pattern[2];
+
                 //membersihkan string yang berisi nik. dan diambil hanya huruf, spasi dan angka saja.
                 $nik = preg_replace("/[^a-zA-Z0-9 ]/", "", $nik);
+
                 //membersihkan spasi di depan dan belakang string
                 $nik = trim($nik);
+
                 //merubah string yang berisi nik menjadi array
                 $nik = explode(" ", $nik);
+
                 //array index ke 0 harus berisi kata NIK. dilakukan pengecekan dengan similar text. apabila array tersebut nilai similar lebih 50% maka array 0 kita replace menjadi NIK agar bisa dilakukan pengecekan berikutnya.
                 similar_text("NIK", $nik[0], $percent);
-                if ($percent > 50) {
+                if ($percent > 30) {
                     $nik[0] = "NIK";
                 }
+
                 // menggabungkan lagi menjadi string
                 $nik = implode(" ", $nik);
 
-                //mencari pola regex nik
+                //pola regex nik
                 $pattern = "/(?<=nik ).*/i";
+
                 //mencari string dengan pola diatas. apabila ada string berisi nik maka ambil string selanjutnya
                 $isExisted = preg_match($pattern, $nik, $matches);
                 if ($isExisted === 1) {
@@ -215,6 +267,7 @@ class IdcardController extends Controller
 
                     //pola regex 
                     $pattern = "/[0-9]+/i";
+
                     //mencari string dengan pola diatas. apabila ada string berisi angka maka ambil semua string berisi angka
                     $isExisted = preg_match($pattern, $nik, $matches);
                     if ($isExisted == 1) {
@@ -237,25 +290,36 @@ class IdcardController extends Controller
 
                 // -----batas suci-------
 
+                //nama berada di array index ke 3
                 $nama = $new_pattern[3];
+                //ambil hanya huruf dan spasi
                 $nama = preg_replace("/[^a-zA-Z ]/", "", $nama);
+
+                //menghapus spasi didepan dan belakang string
                 $nama = trim($nama);
+
+                //merubah string jadi array
                 $nama = explode(" ", $nama);
 
+                //jika array index 0 sama senilai lebih 25 persen dari kata "Nama" maka di replace
                 similar_text("Nama", $nama[0], $percent);
                 if ($percent > 25) {
                     $nama[0] = "Nama";
                 }
+                //ubah jadi string kembali
                 $nama = implode(" ", $nama);
 
-
+                //pola regex
                 $pattern = "/(?<=nama).*/i";
+                //jika sesuia dengan pola diatas maka lanjut proses
                 $isExisted = preg_match($pattern, $nama, $matches);
                 if ($isExisted == 1) {
+
                     $nama = $matches[0];
+                    //pola regex kedua
                     $pattern = "/[a-z]+/i";
                     preg_match_all($pattern, $nama, $attempt);
-
+                    //ubah array jadi string kembali
                     $nama = implode(" ", $attempt[0]);
                 } else {
                     return response()->json([
@@ -263,8 +327,6 @@ class IdcardController extends Controller
                         'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik'
                     ]);
                 }
-
-
 
                 // -----batas suci-------
                 $pattern = "/\d{2} ?- ?\d{2} ?- ?\d{4}/i";
@@ -393,6 +455,53 @@ class IdcardController extends Controller
                 } else {
                     $alamat = '';
                 }
+                // -----batas suci-------
+                $pattern = "/(?<=kecamatan).*/i";
+                $kecamatan = $new_pattern[9];
+
+                $kecamatan = trim($kecamatan);
+                $kecamatan = explode(" ", $kecamatan);
+
+                similar_text("Kecamatan", $kecamatan[0], $percent);
+                if ($percent > 50) {
+                    $kecamatan[0] = "Kecamatan";
+                }
+                $kecamatan = implode(" ", $kecamatan);
+                $isExisted = preg_match($pattern, $kecamatan, $matches);
+                if ($isExisted == 1) {
+                    $kecamatan = $matches[0];
+                    $pattern = "/[a-z]+/i";
+                    preg_match_all($pattern, $kecamatan, $attempt);
+
+                    $kecamatan = implode(" ", $attempt[0]);
+
+                    $data_kabupaten = City::where('name', 'LIKE', '%' . $kota . '%')->first();
+                    if ($data_kabupaten !== null) {
+                        $result = $data_kabupaten->code;
+                        $kecamatan_ktp = District::where('city_code', $result)->get();
+
+
+                        foreach ($kecamatan_ktp as $kecktp) {
+                            $abc[] = $kecktp->name;
+                        }
+
+                        usort($abc, function ($a, $b) use ($kecamatan) {
+
+                            similar_text($kecamatan, $a, $percentA);
+                            similar_text($kecamatan, $b, $percentB);
+                            return $percentB - $percentA;
+                        });
+
+                        $newkecamatan = $abc[0];
+
+                        similar_text($kecamatan, $newkecamatan, $percent);
+                        if ($percent > 50) {
+                            $kecamatan = $newkecamatan;
+                        }
+                    }
+                } else {
+                    $kecamatan = '';
+                }
 
                 // -----batas suci-------
                 $pattern = "/(?=[0-9]).*/i";
@@ -433,35 +542,36 @@ class IdcardController extends Controller
 
 
                     $kelurahan = implode(" ", $attempt[0]);
+
+                    $data_kecamatan = District::where('name', 'LIKE', '%' . $kecamatan . '%')->first();
+
+                    if ($data_kecamatan !== null) {
+                        $result = $data_kecamatan->code;
+
+                        $desa_ktp = Village::where('district_code', $result)->get();
+
+
+                        foreach ($desa_ktp as $desktp) {
+                            $abcd[] = $desktp->name;
+                        }
+
+                        usort($abcd, function ($a, $b) use ($kelurahan) {
+
+                            similar_text($kelurahan, $a, $percentA);
+                            similar_text($kelurahan, $b, $percentB);
+                            return $percentB - $percentA;
+                        });
+
+                        $newkelurahan = $abcd[0];
+                        similar_text($kelurahan, $newkelurahan, $percent);
+                        if ($percent > 75) {
+                            $kelurahan = $newkelurahan;
+                        }
+                    }
                 } else {
                     $kelurahan = '';
                 }
 
-                // -----batas suci-------
-                $pattern = "/(?<=kecamatan).*/i";
-                $kecamatan = $new_pattern[9];
-
-                $kecamatan = trim($kecamatan);
-                $kecamatan = explode(" ", $kecamatan);
-
-                similar_text("Kecamatan", $kecamatan[0], $percent);
-                if ($percent > 50) {
-                    $kecamatan[0] = "Kecamatan";
-                }
-                $kecamatan = implode(" ", $kecamatan);
-                $isExisted = preg_match($pattern, $kecamatan, $matches);
-                if ($isExisted == 1) {
-                    $kecamatan = $matches[0];
-                    $pattern = "/[a-z]+/i";
-                    preg_match_all($pattern, $kecamatan, $attempt);
-
-                    $kecamatan = implode(" ", $attempt[0]);
-                } else {
-                    $kecamatan = '';
-                }
-                // $kec = explode(":", $new_pattern[9]);
-                // $kec = trim($kec[1], " "); //RIP
-                // $new_pattern[9] = $kec;
 
                 // -----batas suci-------
                 $pattern = "/(?<=agama).*/i";
@@ -482,6 +592,7 @@ class IdcardController extends Controller
                     preg_match($pattern, $agama, $matches);
                     if (isset($matches[0])) {
                         $agama = $matches[0];
+
 
                         $agama_ktp = [
                             'ISLAM',
@@ -579,6 +690,7 @@ class IdcardController extends Controller
                             'KARYAWAN BUMN',
                             'KARYAWAN BUMD',
                             'KARYAWAN HONORER',
+                            'PEGAWAI SWASTA',
                             'BURUH HARIAN LEPAS',
                             'BURUH TANI/ PERKEBUNAN',
                             'BURUH NELAYAN/ PERIKANAN',

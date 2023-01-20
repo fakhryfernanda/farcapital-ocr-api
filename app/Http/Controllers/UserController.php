@@ -56,7 +56,7 @@ class UserController extends Controller
     function resendEmailValidation(Request $request)
     {
         $email = $request->input('email');
-
+        $link = $request->input('link');
         $user = User::query()
             ->join('role', 'users.id_role', '=', 'role.id')
             ->select('users.*', 'role.nama_role')

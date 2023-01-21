@@ -12,6 +12,7 @@
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
+        "laravolt/indonesia": "^0.33.0",
         "thiagoalessio/tesseract_ocr": "^2.12",
         "yk/laravel-ocr": "^1.0"
     },

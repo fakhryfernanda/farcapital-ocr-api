@@ -138,11 +138,11 @@ class UserController extends Controller
             ]);
         }
 
-        $user = User::query()->create($payload);
         $data = [
             'link' => $link
         ];
         Mail::to($email)->send(new EmailRegister($data));
+        $user = User::query()->create($payload);
 
         return response()->json([
             "status" => true,

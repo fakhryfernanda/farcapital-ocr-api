@@ -61,6 +61,7 @@ class IdcardController extends Controller
                 return response()->json([
                     'status' => false,
                     'message' => 'Mohon Upload Ulang KTP',
+                    'data' => 'backscan'
 
                 ]);
             }
@@ -69,10 +70,10 @@ class IdcardController extends Controller
 
                 $image = Image::make($image)->greyscale()->contrast(10)->brightness(20);
                 //save gambar sementara
-                $image->save('bar.jpg');
+                $image->save('greyscale/bar.jpg');
 
                 //konversi oleh tesseract
-                $tesseract = new TesseractOCR('bar.jpg');
+                $tesseract = new TesseractOCR('greyscale/bar.jpg');
                 $parsedText = ($tesseract)->dpi(72)->run();
 
                 //merubah jadi array
@@ -81,13 +82,14 @@ class IdcardController extends Controller
                 //menghapus array kosong dan reset index
                 $new_pattern = array_values(array_filter($new_pattern));
                 //hapus lagi photonya
-                unlink('bar.jpg');
+                unlink('greyscale/bar.jpg');
 
                 if (count($new_pattern) <= 13) {
 
                     return response()->json([
                         'status' => false,
-                        'message' => 'ktp tidak terdeteksi'
+                        'message' => 'ktp tidak terdeteksi',
+                        'data' => 'backscan'
                     ]);
                 }
             }
@@ -111,7 +113,8 @@ class IdcardController extends Controller
 
                 return response()->json([
                     'status' => false,
-                    'message' => 'ktp tidak terdeteksi'
+                    'message' => 'ktp tidak terdeteksi',
+                    'data' => 'backscan'
                 ]);
             } else {
                 //mencari provinsi
@@ -280,13 +283,15 @@ class IdcardController extends Controller
                         //jika tidak ada. maka harus di upload ulang 
                         return response()->json([
                             'status' => false,
-                            'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik'
+                            'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
+                            'data' => 'backscan'
                         ]);
                     }
                 } else {
                     return response()->json([
                         'status' => false,
-                        'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik'
+                        'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
+                        'data' => 'backscan'
                     ]);
                 }
 
@@ -326,7 +331,8 @@ class IdcardController extends Controller
                 } else {
                     return response()->json([
                         'status' => false,
-                        'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik'
+                        'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
+                        'data' => 'backscan'
                     ]);
                 }
 
@@ -849,7 +855,8 @@ class IdcardController extends Controller
         } else {
             return response()->json([
                 'status' => false,
-                'message' => 'Mohon Masukkan KTP terlebih dahulu'
+                'message' => 'Mohon Masukkan KTP terlebih dahulu',
+                'data' => 'backscan'
             ]);
         }
     }
@@ -867,7 +874,10 @@ class IdcardController extends Controller
 
     public function index($id)
     {
-        $identity = Identity::where('id_user', $id)->first();
+        $identity = Identity::select('identity.*','users.email')
+        ->join('users', 'identity.id_user', '=', 'users.id')
+        ->where('identity.id_user', $id)
+        ->first();
 
         if (!$identity) {
             return response()->json([
@@ -924,22 +934,23 @@ class IdcardController extends Controller
             ]);
         }
 
-        $identity = Identity::where('nik', '=', $payload['nik'])->first();
+        $nik = Identity::where('nik', '=', $payload['nik'])->first();
+        $identity = Identity::where('id_user', '=', $payload['id_user'])->first();
 
-        if (!$identity) {
+        if (!$nik && !$identity) {
 
             // $img =  $request->file("ktp");
             // $img = Image::make($img);
-
+            
             //watermark
             // $img->text('This image is property of farcapital');
-
+            
             $payload["ktp"] =   $request->file("ktp")->store("images", "public");
-
+            
             $identity = Identity::create($payload);
         } else {
             if ($request->hasFile("ktp")) {
-                Storage::disk('public')->delete($identity->ktp);                            // hapus foto ktp sebelumnya
+                Storage::disk('public')->delete($identity->ktp);
                 $payload["ktp"] = $request->file("ktp")->store("images", "public");
             }
             $identity->update($payload);

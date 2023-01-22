@@ -70,10 +70,10 @@ class IdcardController extends Controller
 
                 $image = Image::make($image)->greyscale()->contrast(10)->brightness(20);
                 //save gambar sementara
-                $image->save('bar.jpg');
+                $image->save('greyscale/bar.jpg');
 
                 //konversi oleh tesseract
-                $tesseract = new TesseractOCR('bar.jpg');
+                $tesseract = new TesseractOCR('greyscale/bar.jpg');
                 $parsedText = ($tesseract)->dpi(72)->run();
 
                 //merubah jadi array
@@ -82,7 +82,7 @@ class IdcardController extends Controller
                 //menghapus array kosong dan reset index
                 $new_pattern = array_values(array_filter($new_pattern));
                 //hapus lagi photonya
-                unlink('bar.jpg');
+                unlink('greyscale/bar.jpg');
 
                 if (count($new_pattern) <= 13) {
 

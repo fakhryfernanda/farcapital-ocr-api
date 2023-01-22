@@ -104,6 +104,8 @@ class IdcardController extends Controller
             $cutter = array_search($new_pattern[0], $words1);
             $new_pattern = array_slice($words1, $cutter);
 
+
+
             // setelah dipotong. apabila tidak ditemukan array yang berisi provinsi maka buat response penolakan
             if (count($new_pattern) <= 13) {
 
@@ -311,7 +313,7 @@ class IdcardController extends Controller
 
                 //pola regex
                 $pattern = "/(?<=nama).*/i";
-                //jika sesuia dengan pola diatas maka lanjut proses
+                //jika sesuai dengan pola diatas maka lanjut proses
                 $isExisted = preg_match($pattern, $nama, $matches);
                 if ($isExisted == 1) {
 
@@ -329,28 +331,40 @@ class IdcardController extends Controller
                 }
 
                 // -----batas suci-------
+
+                //polanya yaitu ambil 2 digit angka pertama dari - 2 digit kedua dari - dan 4 digit pertama dari -
                 $pattern = "/\d{2} ?- ?\d{2} ?- ?\d{4}/i";
+
+                //tanggal lahir ada di array index ke 4
                 $tanggal_lahir = $new_pattern[4];
 
-
+                //jika ada kata yang sesuai dengan pola maka ambil kata tersebut
                 $isExisted = preg_match($pattern, $tanggal_lahir, $matches);
                 if ($isExisted == 1) {
 
-
-
+                    //jika tanggal lahir tidak kosong
                     if ($tanggal_lahir !== null) {
                         $tanggal_lahir = $matches[0];
+                        //menghilangkan spasi
                         $tanggal_lahir = str_replace(" ", "", $tanggal_lahir);
+                        //explode berdasarkan -
                         $tanggal_lahir = explode("-", $tanggal_lahir);
+
+                        //mengubah array menjadi terbalik untuk mengikuti format tanggal.
                         $tanggal_lahir = array_reverse($tanggal_lahir);
+
+                        //gabungkan array kembali dengan -
                         $tanggal_lahir = implode("-", $tanggal_lahir);
                     } else {
+                        //jika tidak terdeteksi maka tanggal lahir kosong
                         $tanggal_lahir = '';
                     }
 
-                    // -----batas suci-------
+                    // -----batas tempat lahir-------
 
+                    //pola regex
                     $pattern = "/(?<=Lahir).*/i";
+
                     $tempat_lahir_awal = $new_pattern[4];
 
 

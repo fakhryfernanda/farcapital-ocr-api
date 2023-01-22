@@ -61,6 +61,7 @@ class IdcardController extends Controller
                 return response()->json([
                     'status' => false,
                     'message' => 'Mohon Upload Ulang KTP',
+                    'data' => 'backscan'
 
                 ]);
             }
@@ -87,7 +88,8 @@ class IdcardController extends Controller
 
                     return response()->json([
                         'status' => false,
-                        'message' => 'ktp tidak terdeteksi'
+                        'message' => 'ktp tidak terdeteksi',
+                        'data' => 'backscan'
                     ]);
                 }
             }
@@ -109,7 +111,8 @@ class IdcardController extends Controller
 
                 return response()->json([
                     'status' => false,
-                    'message' => 'ktp tidak terdeteksi'
+                    'message' => 'ktp tidak terdeteksi',
+                    'data' => 'backscan'
                 ]);
             } else {
                 //mencari provinsi
@@ -278,13 +281,15 @@ class IdcardController extends Controller
                         //jika tidak ada. maka harus di upload ulang 
                         return response()->json([
                             'status' => false,
-                            'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik'
+                            'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
+                            'data' => 'backscan'
                         ]);
                     }
                 } else {
                     return response()->json([
                         'status' => false,
-                        'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik'
+                        'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
+                        'data' => 'backscan'
                     ]);
                 }
 
@@ -324,7 +329,8 @@ class IdcardController extends Controller
                 } else {
                     return response()->json([
                         'status' => false,
-                        'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik'
+                        'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
+                        'data' => 'backscan'
                     ]);
                 }
 
@@ -835,7 +841,8 @@ class IdcardController extends Controller
         } else {
             return response()->json([
                 'status' => false,
-                'message' => 'Mohon Masukkan KTP terlebih dahulu'
+                'message' => 'Mohon Masukkan KTP terlebih dahulu',
+                'data' => 'backscan'
             ]);
         }
     }
@@ -853,7 +860,10 @@ class IdcardController extends Controller
 
     public function index($id)
     {
-        $identity = Identity::where('id_user', $id)->first();
+        $identity = Identity::select('identity.*','users.email')
+        ->join('users', 'identity.id_user', '=', 'users.id')
+        ->where('identity.id_user', $id)
+        ->first();
 
         if (!$identity) {
             return response()->json([

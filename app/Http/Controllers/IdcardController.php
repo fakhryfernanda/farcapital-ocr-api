@@ -169,7 +169,7 @@ class IdcardController extends Controller
                 return $percentB - $percentA;
             });
 
-            //apabila sudah ditemukan maka array diatasnya akan dipotong
+            //apabila sudah ditemukan maka array sebelumnya akan dipotong
             $cutter = array_search($new_pattern[0], $words1);
             $new_pattern = array_slice($words1, $cutter);
 
@@ -318,7 +318,9 @@ class IdcardController extends Controller
                 //merubah string yang berisi nik menjadi array
                 $nik = explode(" ", $nik);
 
-                //array index ke 0 harus berisi kata NIK. dilakukan pengecekan dengan similar text. apabila array tersebut nilai similar lebih 50% maka array 0 kita replace menjadi NIK agar bisa dilakukan pengecekan berikutnya.
+                //array index ke 0 harus berisi kata NIK. dilakukan pengecekan dengan similar text. 
+                //apabila array tersebut nilai similar lebih 50% maka array 0 kita replace menjadi NIK 
+                //agar bisa dilakukan pengecekan berikutnya.
                 similar_text("NIK", $nik[0], $percent);
                 if ($percent > 30) {
                     $nik[0] = "NIK";
@@ -362,8 +364,7 @@ class IdcardController extends Controller
                     ]);
                 }
 
-
-                // -----batas suci-------
+                // -----batas Nama-------
 
                 //nama berada di array index ke 3
                 $nama = $new_pattern[3];
@@ -376,7 +377,7 @@ class IdcardController extends Controller
                 //merubah string jadi array
                 $nama = explode(" ", $nama);
 
-                //jika array index 0 sama senilai lebih 25 persen dari kata "Nama" maka di replace
+                //jika array index 3 sama senilai lebih 25 persen dari kata "Nama" maka di replace
                 similar_text("Nama", $nama[0], $percent);
                 if ($percent > 25) {
                     $nama[0] = "Nama";

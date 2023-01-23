@@ -56,7 +56,7 @@ class UserController extends Controller
     function resendEmailValidation(Request $request)
     {
         $email = $request->input('email');
-
+        $link = $request->input('link');
         $user = User::query()
             ->join('role', 'users.id_role', '=', 'role.id')
             ->select('users.*', 'role.nama_role')
@@ -138,11 +138,11 @@ class UserController extends Controller
             ]);
         }
 
-        $user = User::query()->create($payload);
         $data = [
             'link' => $link
         ];
         Mail::to($email)->send(new EmailRegister($data));
+        $user = User::query()->create($payload);
 
         return response()->json([
             "status" => true,
@@ -154,10 +154,8 @@ class UserController extends Controller
     //----------(batas suci)----------
     function emailRegist($token)
     {
-        $user = user::query()
-            ->where("token", $token)
+        $user = User::where("token", $token)
             ->first();
-
         if (!isset($user)) {
             return response()->json([
                 "status" => false,
@@ -165,7 +163,6 @@ class UserController extends Controller
                 "data" => null
             ]);
         }
-
 
         $payload = [
             'valid' => 1,

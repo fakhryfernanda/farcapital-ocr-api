@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\EmailRegister;
-use App\Mail\ResetPassword;
+use App\Mail\EmailRegistration;
+use App\Mail\ForgotPassword;
 use App\Models\Password_resets;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -93,7 +93,7 @@ class UserController extends Controller
             'link' => $link
         ];
 
-        Mail::to($email)->send(new EmailRegister($data));
+        Mail::to($email)->send(new EmailRegistration($data));
 
         return response()->json([
             "status" => true,
@@ -141,7 +141,7 @@ class UserController extends Controller
         $data = [
             'link' => $link
         ];
-        Mail::to($email)->send(new EmailRegister($data));
+        Mail::to($email)->send(new EmailRegistration($data));
         $user = User::query()->create($payload);
 
         return response()->json([
@@ -263,7 +263,7 @@ class UserController extends Controller
         }else{
             Password_resets::query()->where('email', $email)->update($payload);
         }
-        Mail::to($email)->send(new ResetPassword($link));
+        Mail::to($email)->send(new ForgotPassword($link));
 
         return response()->json([
             "status" => true,

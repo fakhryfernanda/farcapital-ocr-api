@@ -45,7 +45,7 @@ class IdcardController extends Controller
             //konversi oleh tesseract
 
             $tesseract = new TesseractOCR($image);
-            $parsedText = ($tesseract)->dpi(72)->lang('ind')->userWords('user.txt')->run();
+            $parsedText = ($tesseract)->dpi(72)->lang('ind')->run();
 
             //merubah jadi array
             $new_pattern = preg_split('/\n/', $parsedText);
@@ -53,20 +53,8 @@ class IdcardController extends Controller
             //menghapus array kosong dan reset index
             $new_pattern = array_values(array_filter($new_pattern));
 
-
-
-
-            //apabila array kosong
-            if ($new_pattern == null) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Mohon Upload Ulang KTP',
-                    'data' => 'backscan'
-
-                ]);
-            }
             //apabila isi array kurang dari 13 maka konversi diulang dengan merubah gambar menjadi greyscale dan menambahkan kontras dan brightness
-            elseif (count($new_pattern) <= 13) {
+            if (count($new_pattern) <= 13) {
 
                 $image = Image::make($image)->greyscale()->contrast(10)->brightness(20);
                 //save gambar sementara
@@ -84,15 +72,94 @@ class IdcardController extends Controller
                 //hapus lagi photonya
                 unlink('greyscale/bar.jpg');
 
+
+
                 if (count($new_pattern) <= 13) {
 
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'ktp tidak terdeteksi',
-                        'data' => 'backscan'
-                    ]);
+                    $image = Image::make($image)->greyscale()->contrast(15)->brightness(20);
+                    //save gambar sementara
+                    $image->save('greyscale/bar.jpg');
+
+                    //konversi oleh tesseract
+                    $tesseract = new TesseractOCR('greyscale/bar.jpg');
+                    $parsedText = ($tesseract)->dpi(72)->run();
+
+                    //merubah jadi array
+                    $new_pattern = preg_split('/\n/', $parsedText);
+
+                    //menghapus array kosong dan reset index
+                    $new_pattern = array_values(array_filter($new_pattern));
+                    //hapus lagi photonya
+                    unlink('greyscale/bar.jpg');
+
+
+                    if (count($new_pattern) <= 13) {
+
+                        $image = Image::make($image)->greyscale()->contrast(20)->brightness(20);
+                        //save gambar sementara
+                        $image->save('greyscale/bar.jpg');
+
+                        //konversi oleh tesseract
+                        $tesseract = new TesseractOCR('greyscale/bar.jpg');
+                        $parsedText = ($tesseract)->dpi(72)->run();
+
+                        //merubah jadi array
+                        $new_pattern = preg_split('/\n/', $parsedText);
+
+                        //menghapus array kosong dan reset index
+                        $new_pattern = array_values(array_filter($new_pattern));
+                        //hapus lagi photonya
+                        unlink('greyscale/bar.jpg');
+                        if (count($new_pattern) <= 13) {
+
+                            $image = Image::make($image)->greyscale()->contrast(25)->brightness(20);
+                            //save gambar sementara
+                            $image->save('greyscale/bar.jpg');
+
+                            //konversi oleh tesseract
+                            $tesseract = new TesseractOCR('greyscale/bar.jpg');
+                            $parsedText = ($tesseract)->dpi(72)->lang('ind')->userWords('user.txt')->run();
+
+                            //merubah jadi array
+                            $new_pattern = preg_split('/\n/', $parsedText);
+
+                            //menghapus array kosong dan reset index
+                            $new_pattern = array_values(array_filter($new_pattern));
+                            //hapus lagi photonya
+                            unlink('greyscale/bar.jpg');
+
+                            if (count($new_pattern) <= 13) {
+
+                                $image = Image::make($image)->greyscale()->contrast(30)->brightness(20);
+                                //save gambar sementara
+                                $image->save('greyscale/bar.jpg');
+
+                                //konversi oleh tesseract
+                                $tesseract = new TesseractOCR('greyscale/bar.jpg');
+                                $parsedText = ($tesseract)->dpi(72)->lang('ind')->userWords('user.txt')->run();
+
+                                //merubah jadi array
+                                $new_pattern = preg_split('/\n/', $parsedText);
+
+                                //menghapus array kosong dan reset index
+                                $new_pattern = array_values(array_filter($new_pattern));
+                                //hapus lagi photonya
+                                unlink('greyscale/bar.jpg');
+
+                                if (count($new_pattern) <= 13) {
+
+                                    return response()->json([
+                                        'status' => false,
+                                        'message' => 'KTP Tidak Terdeteksi, Mohon Upload ulang',
+                                        'data' => 'backscan'
+                                    ]);
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
 
             //mencari array yang berisi provinsi atau setidaknya paling sama dengan kata provinsi
             $words1 = $new_pattern;
@@ -105,6 +172,8 @@ class IdcardController extends Controller
             //apabila sudah ditemukan maka array diatasnya akan dipotong
             $cutter = array_search($new_pattern[0], $words1);
             $new_pattern = array_slice($words1, $cutter);
+
+
 
             // setelah dipotong. apabila tidak ditemukan array yang berisi provinsi maka buat response penolakan
             if (count($new_pattern) <= 13) {
@@ -293,6 +362,7 @@ class IdcardController extends Controller
                     ]);
                 }
 
+
                 // -----batas suci-------
 
                 //nama berada di array index ke 3
@@ -316,7 +386,7 @@ class IdcardController extends Controller
 
                 //pola regex
                 $pattern = "/(?<=nama).*/i";
-                //jika sesuia dengan pola diatas maka lanjut proses
+                //jika sesuai dengan pola diatas maka lanjut proses
                 $isExisted = preg_match($pattern, $nama, $matches);
                 if ($isExisted == 1) {
 
@@ -335,28 +405,61 @@ class IdcardController extends Controller
                 }
 
                 // -----batas suci-------
+
+                //polanya yaitu ambil 2 digit angka pertama dari - 2 digit kedua dari - dan 4 digit pertama dari -
                 $pattern = "/\d{2} ?- ?\d{2} ?- ?\d{4}/i";
+
+                //tanggal lahir ada di array index ke 4
                 $tanggal_lahir = $new_pattern[4];
 
-
+                //jika ada kata yang sesuai dengan pola maka ambil kata tersebut
                 $isExisted = preg_match($pattern, $tanggal_lahir, $matches);
                 if ($isExisted == 1) {
 
-
-
+                    //jika tanggal lahir tidak kosong
                     if ($tanggal_lahir !== null) {
                         $tanggal_lahir = $matches[0];
+                        //menghilangkan spasi
                         $tanggal_lahir = str_replace(" ", "", $tanggal_lahir);
+                        //explode berdasarkan -
                         $tanggal_lahir = explode("-", $tanggal_lahir);
+
+                        //mengubah array menjadi terbalik untuk mengikuti format tanggal.
                         $tanggal_lahir = array_reverse($tanggal_lahir);
+
+                        //gabungkan array kembali dengan -
                         $tanggal_lahir = implode("-", $tanggal_lahir);
                     } else {
-                        $tanggal_lahir = '';
+                        //jika tidak terdeteksi maka tanggal lahir ambil dari nik. dengan syarat 4 digit pertama nik sama dengan kode kota
+
+                        $kode_kota =  substr($nik, 0, 4);
+                        $data_kota = City::where('name', 'LIKE', '%' . $kota . '%')->first();
+                        $data_kota = $data_kota->code;
+
+                        if ($data_kota ==  $kode_kota) {
+
+                            $tanggal = substr($nik, 6, 2);
+                            if ($tanggal > 32) {
+                                $tanggal = $tanggal - 40;
+                            }
+                            $bulan = substr($nik, 8, 2);
+                            $tahun = substr($nik, 10, 2);
+                            if ($tahun < 25) {
+                                $new_tahun = "20" . $tahun;
+                            } else {
+                                $new_tahun = "19" . $tahun;
+                            }
+                            $tanggal_lahir = $new_tahun . "-" . $bulan . "-" . $tanggal;
+                        } else {
+                            $tanggal_lahir = '';
+                        }
                     }
 
-                    // -----batas suci-------
+                    // -----batas tempat lahir-------
 
+                    //pola regex
                     $pattern = "/(?<=Lahir).*/i";
+
                     $tempat_lahir_awal = $new_pattern[4];
 
 
@@ -374,7 +477,29 @@ class IdcardController extends Controller
                         $tempat_lahir = '';
                     }
                 } else {
-                    $tanggal_lahir = "";
+
+                    $kode_kota =  substr($nik, 0, 4);
+                    $data_kota = City::where('name', 'LIKE', '%' . $kota . '%')->first();
+                    $data_kota = $data_kota->code;
+
+                    if ($data_kota ==  $kode_kota) {
+
+                        $tanggal = substr($nik, 6, 2);
+                        if ($tanggal > 32) {
+                            $tanggal = $tanggal - 40;
+                        }
+                        $bulan = substr($nik, 8, 2);
+                        $tahun = substr($nik, 10, 2);
+                        if ($tahun < 25) {
+                            $new_tahun = "20" . $tahun;
+                        } else {
+                            $new_tahun = "19" . $tahun;
+                        }
+                        $tanggal_lahir = $new_tahun . "-" . $bulan . "-" . $tanggal;
+                    } else {
+                        $tanggal_lahir = '';
+                    }
+
                     $tempat_lahir = "";
                 }
 
@@ -414,6 +539,23 @@ class IdcardController extends Controller
                             $gender = 1;
                         }
                     } else {
+                        $jumlah_nik = strlen($nik);
+                        if ($jumlah_nik >= 16) {
+                            $gender =  substr($nik, 6, 2);
+                            $gender = (int)$gender;
+
+                            if ($gender > 32) {
+                                $gender = 0;
+                            } else {
+                                $gender = 1;
+                            }
+                        } else {
+                            $gender = "";
+                        }
+                    }
+                } else {
+                    $jumlah_nik = strlen($nik);
+                    if ($jumlah_nik >= 16) {
                         $gender =  substr($nik, 6, 2);
                         $gender = (int)$gender;
 
@@ -422,15 +564,8 @@ class IdcardController extends Controller
                         } else {
                             $gender = 1;
                         }
-                    }
-                } else {
-                    $gender =  substr($nik, 6, 2);
-                    $gender = (int)$gender;
-
-                    if ($gender > 32) {
-                        $gender = 0;
                     } else {
-                        $gender = 1;
+                        $gender = "";
                     }
                 }
 
@@ -841,7 +976,7 @@ class IdcardController extends Controller
         } else {
             return response()->json([
                 'status' => false,
-                'message' => 'Mohon Masukkan KTP terlebih dahulu',
+                'message' => 'Mohon Masukkan KTP Terlebih Dahulu',
                 'data' => 'backscan'
             ]);
         }
@@ -860,10 +995,10 @@ class IdcardController extends Controller
 
     public function index($id)
     {
-        $identity = Identity::select('identity.*','users.email')
-        ->join('users', 'identity.id_user', '=', 'users.id')
-        ->where('identity.id_user', $id)
-        ->first();
+        $identity = Identity::select('identity.*', 'users.email')
+            ->join('users', 'identity.id_user', '=', 'users.id')
+            ->where('identity.id_user', $id)
+            ->first();
 
         if (!$identity) {
             return response()->json([
@@ -927,12 +1062,12 @@ class IdcardController extends Controller
 
             // $img =  $request->file("ktp");
             // $img = Image::make($img);
-            
+
             //watermark
             // $img->text('This image is property of farcapital');
-            
+
             $payload["ktp"] =   $request->file("ktp")->store("images", "public");
-            
+
             $identity = Identity::create($payload);
         } else {
             if ($request->hasFile("ktp")) {

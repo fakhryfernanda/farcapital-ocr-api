@@ -1104,7 +1104,8 @@ class IdcardController extends Controller
                     "data" => 'nik'
                 ]);
             }
-            $payload["ktp"] =  Storage::disk('public')->put('images/' . $image_name, $image);           
+            Storage::disk('public')->put('images/' . $image_name, $image);
+            $payload["ktp"] =  'images/'.$image_name;           
             $identity = Identity::create($payload);
 
         } else {
@@ -1119,50 +1120,16 @@ class IdcardController extends Controller
             if ($request->hasFile("ktp")) {
                 Storage::disk('public')->delete($identity->ktp);
 
-                $payload["ktp"] =  Storage::disk('public')->put('images/' . $image_name, $image);
+                Storage::disk('public')->put('images/' . $image_name, $image);
+                $payload["ktp"] = 'images/'.$image_name;
                 $identity->update($payload);
             }
 
-            return response()->json([
-                "status" => true,
-                "message" => "data berhasil disimpan",
-                "data" => $identity
-            ]);
         }
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        return response()->json([
+            "status" => true,
+            "message" => "data berhasil disimpan",
+            "data" => $identity
+        ]);
     }
 }

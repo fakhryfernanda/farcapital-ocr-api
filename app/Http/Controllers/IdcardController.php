@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Support\Facades\RateLimiter;
 
 use thiagoalessio\TesseractOCR\TesseractOCR;
-use OCR;
 use App\Models\Identity;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -15,7 +12,6 @@ use App\Models\District;
 use App\Models\Province;
 use App\Models\Village;
 
-use function PHPUnit\Framework\matches;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\Facades\Image;
@@ -658,12 +654,14 @@ class IdcardController extends Controller
                     $rt = trim($rtw[0], " ");
                     $rt = preg_replace("/[^0-9]/", "", $rt);
                     $rt = substr($rt, -2);
+                    $rt = '0'.$rt;
 
 
                     if (isset($rtw[1])) {
                         $rw = trim($rtw[1], " ");
                         $rw = preg_replace("/[^0-9]/", "", $rw);
                         $rw = substr($rw, -2);
+                        $rw = '0'.$rw;
                     } else {
                         $rw = '';
                     }
@@ -1058,7 +1056,7 @@ class IdcardController extends Controller
 
         $nik = Identity::where('nik', '=', $payload['nik'])->first();
         $identity = Identity::where('id_user', '=', $payload['id_user'])->first();
-
+        // dd($nik,$identity,$payload['nik'],$payload['id_user']);
         $image =  $request->file("ktp");
         $image = Image::make($image);
         $width = $image->width();
@@ -1105,11 +1103,11 @@ class IdcardController extends Controller
                 ]);
             }
 
-            $payload["ktp"] =   $image->store("images", "public");
+            // $payload["ktp"] =   $image->save("images", "public");
             $identity = Identity::create($payload);
 
         } else {
-            if($nik['nik'] != $identity['nik']){
+            if($payload['nik'] != $identity['nik']){
                 return response()->json([
                     "status" => false,
                     "message" => "NIK tidak boleh berubah",
@@ -1119,8 +1117,8 @@ class IdcardController extends Controller
 
             if ($request->hasFile("ktp")) {
                 Storage::disk('public')->delete($identity->ktp);
-                // $payload["ktp"] = $request->file("ktp")->store("images", "public");
-                $payload["ktp"] = $image->store("images", "public");
+                // $payload["ktp"] = $image->response()->store("images", "public");
+                // $payload["ktp"] = $image->save("images", "public");
             }
             $identity->update($payload);
         }

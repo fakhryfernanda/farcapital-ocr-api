@@ -30,8 +30,8 @@ Route::post("/upload", [IdcardController::class, "readImage"]);
 Route::get("/identity/{id}", [IdcardController::class, "index"])->middleware("auth:sanctum");
 
 // ----------( user )---------
-Route::get("/user", [UserController::class, "index"]);
-Route::get("/user/{id}", [UserController::class, "show"]);
+Route::get("/user", [UserController::class, "index"])->middleware("auth:sanctum");
+Route::get("/user/{id}", [UserController::class, "show"])->middleware("auth:sanctum");
 Route::post("/user/forgotpass", [UserController::class, "forgotpass"]);
 Route::post("/user/add", [UserController::class, "store"]);
 Route::post("/user/{id}/edit", [UserController::class, "update"])->middleware("auth:sanctum");

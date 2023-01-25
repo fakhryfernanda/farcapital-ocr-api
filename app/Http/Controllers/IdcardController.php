@@ -1058,19 +1058,29 @@ class IdcardController extends Controller
 
         $nik = Identity::where('nik', '=', $payload['nik'])->first();
         $identity = Identity::where('id_user', '=', $payload['id_user'])->first();
+        dd($nik['nik'],$nik['id_user'],$identity['nik'],$identity['id_user']);
 
-        if (!$nik && !$identity) {
-
-            // $img =  $request->file("ktp");
-            // $img = Image::make($img);
-
-            //watermark
-            // $img->text('This image is property of farcapital');
-
+        if (!$identity) {
+            if($nik){
+                return response()->json([
+                    "status" => false,
+                    "message" => "NIK sudah terdaftar di email atau akun lain.",
+                    "data" => 'nik'
+                ]);
+            }
+            
             $payload["ktp"] =   $request->file("ktp")->store("images", "public");
-
             $identity = Identity::create($payload);
+
         } else {
+            if($nik['nik'] != $identity['nik']){
+                return response()->json([
+                    "status" => false,
+                    "message" => "NIK tidak boleh berubah",
+                    "data" => 'nik'
+                ]);
+            }
+
             if ($request->hasFile("ktp")) {
                 Storage::disk('public')->delete($identity->ktp);
                 $payload["ktp"] = $request->file("ktp")->store("images", "public");

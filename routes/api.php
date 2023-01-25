@@ -25,7 +25,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get('/dashboard', [IdcardController::class, "showAll"])->middleware("auth:sanctum");
 
 // ----------( identity )---------
-Route::post("/identity/add", [IdcardController::class, "store"])->middleware("auth:sanctum");
+Route::post("/identity/add", [IdcardController::class, "store"]);
 Route::post("/upload", [IdcardController::class, "readImage"]);
 Route::get("/identity/{id}", [IdcardController::class, "index"])->middleware("auth:sanctum");
 

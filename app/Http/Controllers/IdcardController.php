@@ -1058,6 +1058,7 @@ class IdcardController extends Controller
         $identity = Identity::where('id_user', '=', $payload['id_user'])->first();
         // dd($nik,$identity,$payload['nik'],$payload['id_user']);
         $image =  $request->file("ktp");
+        $image_name = $image->hashName();
         $image = Image::make($image);
         $width = $image->width();
         $height = $image->height();
@@ -1093,6 +1094,7 @@ class IdcardController extends Controller
             $font->align('center');
             $font->valign('top');
         });
+        $image->encode('jpg');
 
         if (!$identity) {
             if($nik){
@@ -1102,8 +1104,7 @@ class IdcardController extends Controller
                     "data" => 'nik'
                 ]);
             }
-
-            // $payload["ktp"] =   $image->save("images", "public");
+            $payload["ktp"] =  Storage::disk('public')->put('images/' . $image_name, $image);           
             $identity = Identity::create($payload);
 
         } else {
@@ -1117,17 +1118,17 @@ class IdcardController extends Controller
 
             if ($request->hasFile("ktp")) {
                 Storage::disk('public')->delete($identity->ktp);
-                // $payload["ktp"] = $image->response()->store("images", "public");
-                // $payload["ktp"] = $image->save("images", "public");
-            }
-            $identity->update($payload);
-        }
 
-        return response()->json([
-            "status" => true,
-            "message" => "data berhasil disimpan",
-            "data" => $identity
-        ]);
+                $payload["ktp"] =  Storage::disk('public')->put('images/' . $image_name, $image);
+                $identity->update($payload);
+            }
+
+            return response()->json([
+                "status" => true,
+                "message" => "data berhasil disimpan",
+                "data" => $identity
+            ]);
+        }
     }
 
     /**

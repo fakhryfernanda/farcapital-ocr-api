@@ -1058,21 +1058,57 @@ class IdcardController extends Controller
         $nik = Identity::where('nik', '=', $payload['nik'])->first();
         $identity = Identity::where('id_user', '=', $payload['id_user'])->first();
 
+        $image =  $request->file("ktp");
+        $image = Image::make($image);
+        $width = $image->width();
+        $height = $image->height();
+
+        $ukuran_lebar = $width * 25 / 100;
+        $ukuran_tinggi = $height * 25 / 100;
+
+        $ukuran_lebar2 = $width * 50 / 100;
+        $ukuran_tinggi2 = $height * 50 / 100;
+
+        $ukuran_lebar3 = $width * 75 / 100;
+        $ukuran_tinggi3 = $height * 75 / 100;
+
+
+        $image->text('PROPERTY INI MILIK FARCAPITAL', $ukuran_lebar, $ukuran_tinggi, function ($font) {
+            $font->file(public_path("Roboto-Black.ttf"));
+            $font->size(40);
+            $font->color([255, 255, 255, 0.3]);
+            $font->align('center');
+            $font->valign('top');
+        });
+        $image->text('PROPERTY INI MILIK FARCAPITAL', $ukuran_lebar2, $ukuran_tinggi2, function ($font) {
+            $font->file(public_path("Roboto-Black.ttf"));
+            $font->size(40);
+            $font->color([255, 255, 255, 0.3]);
+            $font->align('center');
+            $font->valign('top');
+        });
+        $image->text('PROPERTY INI MILIK FARCAPITAL', $ukuran_lebar3, $ukuran_tinggi3, function ($font) {
+            $font->file(public_path("Roboto-Black.ttf"));
+            $font->size(40);
+            $font->color([255, 255, 255, 0.3]);
+            $font->align('center');
+            $font->valign('top');
+        });
+
+
+
         if (!$nik && !$identity) {
 
-            // $img =  $request->file("ktp");
-            // $img = Image::make($img);
 
-            //watermark
-            // $img->text('This image is property of farcapital');
-
-            $payload["ktp"] =   $request->file("ktp")->store("images", "public");
+            // $payload["ktp"] =   $request->file("ktp")->store("images", "public");
+            $payload["ktp"] =   $image->store("images", "public");
 
             $identity = Identity::create($payload);
         } else {
             if ($request->hasFile("ktp")) {
                 Storage::disk('public')->delete($identity->ktp);
-                $payload["ktp"] = $request->file("ktp")->store("images", "public");
+                // $payload["ktp"] = $request->file("ktp")->store("images", "public");
+                $payload["ktp"] = $image->store("images", "public");
             }
             $identity->update($payload);
         }

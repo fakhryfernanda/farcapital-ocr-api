@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PersonalAccessToken;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -61,6 +62,17 @@ class AuthController extends Controller
         return response()->json([
             "status" => true,
             "message" => "data user",
+            "data" => $user
+        ]);
+    }
+
+    function logout(Request $request)
+    {
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+        return response()->json([
+            "status" => true,
+            "message" => "Sukses Logout",
             "data" => $user
         ]);
     }

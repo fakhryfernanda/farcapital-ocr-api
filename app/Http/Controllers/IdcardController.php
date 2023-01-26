@@ -1073,21 +1073,21 @@ class IdcardController extends Controller
         $ukuran_tinggi3 = $height * 75 / 100;
 
 
-        $image->text('PROPERTY INI MILIK FARCAPITAL', $ukuran_lebar, $ukuran_tinggi, function ($font) {
+        $image->text('PROPERTI INI MILIK FAR CAPITAL', $ukuran_lebar, $ukuran_tinggi, function ($font) {
             $font->file(public_path("Roboto-Black.ttf"));
             $font->size(40);
             $font->color([255, 255, 255, 0.3]);
             $font->align('center');
             $font->valign('top');
         });
-        $image->text('PROPERTY INI MILIK FARCAPITAL', $ukuran_lebar2, $ukuran_tinggi2, function ($font) {
+        $image->text('PROPERTI INI MILIK FAR CAPITAL', $ukuran_lebar2, $ukuran_tinggi2, function ($font) {
             $font->file(public_path("Roboto-Black.ttf"));
             $font->size(40);
             $font->color([255, 255, 255, 0.3]);
             $font->align('center');
             $font->valign('top');
         });
-        $image->text('PROPERTY INI MILIK FARCAPITAL', $ukuran_lebar3, $ukuran_tinggi3, function ($font) {
+        $image->text('PROPERTI INI MILIK FAR CAPITAL', $ukuran_lebar3, $ukuran_tinggi3, function ($font) {
             $font->file(public_path("Roboto-Black.ttf"));
             $font->size(40);
             $font->color([255, 255, 255, 0.3]);

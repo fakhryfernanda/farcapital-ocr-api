@@ -50,4 +50,6 @@ Route::get("/role", [RoleController::class, "index"]);
 
 // ---------{Sanctum}-------
 Route::post("/login", [AuthController::class, "login"]);
+// Route::post("/logout/{token}", [AuthController::class, "logout"]);
+Route::get("/logout", [AuthController::class, "logout"])->middleware("auth:sanctum");
 Route::get("/me", [AuthController::class, "getUser"])->middleware("auth:sanctum");

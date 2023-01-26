@@ -47,7 +47,9 @@ class IdcardController extends Controller
             $new_pattern = preg_split('/\n/', $parsedText);
 
             //menghapus array kosong dan reset index
-            $new_pattern = array_values(array_filter($new_pattern));
+            $new_pattern = array_filter($new_pattern);
+            $new_pattern = \array_diff($new_pattern, [" "]);
+            $new_pattern = array_values($new_pattern);
 
             //apabila isi array kurang dari 13 maka konversi diulang dengan merubah gambar menjadi greyscale dan menambahkan kontras dan brightness
             if (count($new_pattern) <= 13) {
@@ -64,7 +66,9 @@ class IdcardController extends Controller
                 $new_pattern = preg_split('/\n/', $parsedText);
 
                 //menghapus array kosong dan reset index
-                $new_pattern = array_values(array_filter($new_pattern));
+                $new_pattern = array_filter($new_pattern);
+                $new_pattern = \array_diff($new_pattern, [" "]);
+                $new_pattern = array_values($new_pattern);
                 //hapus lagi photonya
                 unlink('greyscale/bar.jpg');
 
@@ -84,7 +88,9 @@ class IdcardController extends Controller
                     $new_pattern = preg_split('/\n/', $parsedText);
 
                     //menghapus array kosong dan reset index
-                    $new_pattern = array_values(array_filter($new_pattern));
+                    $new_pattern = array_filter($new_pattern);
+                    $new_pattern = \array_diff($new_pattern, [" "]);
+                    $new_pattern = array_values($new_pattern);
                     //hapus lagi photonya
                     unlink('greyscale/bar.jpg');
 
@@ -103,7 +109,9 @@ class IdcardController extends Controller
                         $new_pattern = preg_split('/\n/', $parsedText);
 
                         //menghapus array kosong dan reset index
-                        $new_pattern = array_values(array_filter($new_pattern));
+                        $new_pattern = array_filter($new_pattern);
+                        $new_pattern = \array_diff($new_pattern, [" "]);
+                        $new_pattern = array_values($new_pattern);
                         //hapus lagi photonya
                         unlink('greyscale/bar.jpg');
                         if (count($new_pattern) <= 13) {
@@ -138,7 +146,9 @@ class IdcardController extends Controller
                                 $new_pattern = preg_split('/\n/', $parsedText);
 
                                 //menghapus array kosong dan reset index
-                                $new_pattern = array_values(array_filter($new_pattern));
+                                $new_pattern = array_filter($new_pattern);
+                                $new_pattern = \array_diff($new_pattern, [" "]);
+                                $new_pattern = array_values($new_pattern);
                                 //hapus lagi photonya
                                 unlink('greyscale/bar.jpg');
 
@@ -458,7 +468,7 @@ class IdcardController extends Controller
                     $pattern = "/(?<=Lahir).*/i";
 
                     $tempat_lahir_awal = $new_pattern[4];
-
+                    //ambil tanggal lahir
 
                     $isExisted =  preg_match($pattern, $tempat_lahir_awal, $matches);
                     if ($isExisted == 1) {
@@ -500,7 +510,7 @@ class IdcardController extends Controller
                     $tempat_lahir = "";
                 }
 
-                // -----batas suci-------
+                // -----batas golongan darah-------
                 $pattern = "/(?<=Darah).*/i";
                 $goldar = $new_pattern[5];
                 $isExisted = preg_match($pattern, $goldar, $matches);
@@ -566,7 +576,7 @@ class IdcardController extends Controller
                     }
                 }
 
-                // -----batas suci-------
+                // -----batas alamat-------
 
                 $alamat = $new_pattern[6];
 
@@ -593,7 +603,9 @@ class IdcardController extends Controller
                 } else {
                     $alamat = '';
                 }
-                // -----batas suci-------
+
+
+                // -----batas kecamatan-------
                 $pattern = "/(?<=kecamatan).*/i";
                 $kecamatan = $new_pattern[9];
 
@@ -613,6 +625,7 @@ class IdcardController extends Controller
 
                     $kecamatan = implode(" ", $attempt[0]);
 
+                    //cek nama kecamatan dari database
                     $data_kabupaten = City::where('name', 'LIKE', '%' . $kota . '%')->first();
                     if ($data_kabupaten !== null) {
                         $result = $data_kabupaten->code;
@@ -641,7 +654,7 @@ class IdcardController extends Controller
                     $kecamatan = '';
                 }
 
-                // -----batas suci-------
+                // -----batas rt dan rw-------
                 $pattern = "/(?=[0-9]).*/i";
                 $isExisted = preg_match_all($pattern, $new_pattern[7], $hilih);
 
@@ -654,14 +667,14 @@ class IdcardController extends Controller
                     $rt = trim($rtw[0], " ");
                     $rt = preg_replace("/[^0-9]/", "", $rt);
                     $rt = substr($rt, -2);
-                    $rt = '0'.$rt;
+                    $rt = '0' . $rt;
 
 
                     if (isset($rtw[1])) {
                         $rw = trim($rtw[1], " ");
                         $rw = preg_replace("/[^0-9]/", "", $rw);
                         $rw = substr($rw, -2);
-                        $rw = '0'.$rw;
+                        $rw = '0' . $rw;
                     } else {
                         $rw = '';
                     }
@@ -670,7 +683,7 @@ class IdcardController extends Controller
                     $rw = '';
                 }
 
-                // -----batas suci-------
+                // -----batas desa-------
                 $pattern = "/(?<=Desa).*/i";
                 $kelurahan = $new_pattern[8];
                 $isExisted = preg_match($pattern, $kelurahan, $matches);
@@ -713,7 +726,7 @@ class IdcardController extends Controller
                 }
 
 
-                // -----batas suci-------
+                // -----batas agama-------
                 $pattern = "/(?<=agama).*/i";
                 $agama = $new_pattern[10];
                 $agama = trim($agama);
@@ -914,7 +927,7 @@ class IdcardController extends Controller
                     $pekerjaan = '';
                 }
 
-                // -----batas suci-------
+                // -----batas kewarganegaraan-------
                 $pattern = "/(?<=negaraan).*/i";
                 $kewarganegaraan = $new_pattern[13];
                 $kewarganegaraan = trim($kewarganegaraan);
@@ -1097,7 +1110,7 @@ class IdcardController extends Controller
         $image->encode('jpg');
 
         if (!$identity) {
-            if($nik){
+            if ($nik) {
                 return response()->json([
                     "status" => false,
                     "message" => "NIK sudah terdaftar di email atau akun lain.",
@@ -1105,11 +1118,10 @@ class IdcardController extends Controller
                 ]);
             }
             Storage::disk('public')->put('images/' . $image_name, $image);
-            $payload["ktp"] =  'images/'.$image_name;           
+            $payload["ktp"] =  'images/' . $image_name;
             $identity = Identity::create($payload);
-
         } else {
-            if($payload['nik'] != $identity['nik']){
+            if ($payload['nik'] != $identity['nik']) {
                 return response()->json([
                     "status" => false,
                     "message" => "NIK tidak boleh berubah",
@@ -1121,10 +1133,9 @@ class IdcardController extends Controller
                 Storage::disk('public')->delete($identity->ktp);
 
                 Storage::disk('public')->put('images/' . $image_name, $image);
-                $payload["ktp"] = 'images/'.$image_name;
+                $payload["ktp"] = 'images/' . $image_name;
                 $identity->update($payload);
             }
-
         }
         return response()->json([
             "status" => true,

@@ -215,48 +215,15 @@ class IdcardController extends Controller
                     $provinsi = trim($provinsi);
 
 
-                    //array untuk replace kata provinsi yang masih kurang tepat
-                    $provinsi_ktp = [
-                        'NANGGROE ACEH DARUSSALAM',
-                        'SUMATERA UTARA',
-                        'SUMATERA SELATAN',
-                        'SUMATERA BARAT',
-                        'BENGKULU',
-                        'RIAU',
-                        'KEPULAUAN RIAU',
-                        'JAMBI',
-                        'LAMPUNG',
-                        'BANGKA BELITUNG',
-                        'KALIMANTAN BARAT',
-                        'KALIMANTAN TIMUR',
-                        'KALIMANTAN SELATAN',
-                        'KALIMANTAN TENGAH',
-                        'KALIMANTAN UTARA',
-                        'BANTEN',
-                        'DKI JAKARTA',
-                        'JAWA BARAT',
-                        'JAWA TENGAH',
-                        'DAERAH ISTIMEWA YOGYAKARTA',
-                        'JAWA TIMUR',
-                        'BALI',
-                        'NUSA TENGGARA TIMUR',
-                        'NUSA TENGGARA BARAT',
-                        'GORONTALO',
-                        'SULAWESI BARAT',
-                        'SULAWESI TENGAH',
-                        'SULAWESI UTARA',
-                        'SULAWESI TENGGARA',
-                        'SULAWESI SELATAN',
-                        'MALUKU UTARA',
-                        'MALUKU',
-                        'PAPUA BARAT',
-                        'PAPUA',
-                        'PAPUA TENGAH',
-                        'PAPUA PEGUNUNGAN'
-                    ];
+                    //data untuk replace kata setelah provinsi yang masih kurang tepat
+                    $provinsi_ktp = Province::all();
 
+
+                    foreach ($provinsi_ktp as $provinsiktp) {
+                        $ktpprovinsi[] = $provinsiktp->name;
+                    }
                     //mencari kata provinsi yang paling sama dengan data yang didapat dari scan tesseract 
-                    usort($provinsi_ktp, function ($a, $b) use ($provinsi) {
+                    usort($ktpprovinsi, function ($a, $b) use ($provinsi) {
                         similar_text($provinsi, $a, $percentA);
                         similar_text($provinsi, $b, $percentB);
                         return $percentB - $percentA;

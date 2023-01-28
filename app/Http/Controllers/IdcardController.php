@@ -191,62 +191,66 @@ class IdcardController extends Controller
                 similar_text('PROVINSI', $b, $percentB);
                 return $percentB - $percentA;
             });
+
             //if the similarity is less than 35 percent then there will be a rejection response
             similar_text($checkprovinsi[0], "PROVINSI", $percent);
             if ($percent < 35) {
 
                 return response()->json([
                     'status' => false,
-                    'message' => 'KTP Tidak Terdeteksi',
+                    'message' => 'KTP Tidak Terdeteksi, Mohon Upload ulang.',
                     'data' => 'backscan'
                 ]);
             } else {
 
                 $provinsi_baru = $new_pattern[0];
 
-                //explode array untuk mengganti kata provinsi yang tidak sempurna.
+                //explode array to replace imperfect province word.
 
                 $a = explode(" ", $provinsi_baru);
                 $a[0] = 'PROVINSI';
-                //provinsi digabung kembali
+
+                //provinces merged again
                 $b = implode(" ", $a);
                 $provinsi = $b;
 
-
-                //membuat pola regex
+                //create the regex pattern
                 $pattern = "/(?<=provinsi ).*/i";
-                //mencari string dengan pola diatas. apabila ada string berisi provinsi maka ambil string selanjutnya
+
+                // search string with pattern above. if there is a string containing province then take the next string
                 $isExisted = preg_match($pattern, $provinsi, $matches);
-                //jika true
+
+                //if true
                 if ($isExisted == 1) {
                     $provinsi = $matches[0];
-                    //mereplace kata dan yang diambil hanya huruf dan spasi. selainnya dibuang
+
+                    //replace words and only letters and spaces are taken. otherwise discarded
                     $provinsi = preg_replace("/[^a-zA-Z ]/", "", $provinsi);
-                    //menghilangkan spasi di depan dan belakang kata
+
+                    //removes leading and trailing spaces
                     $provinsi = trim($provinsi);
 
 
-                    //data untuk replace kata setelah provinsi yang masih kurang tepat
+                    //data from the database to replace words after the province which is still not quite right
                     $provinsi_ktp = Province::all();
-
-
                     foreach ($provinsi_ktp as $provinsiktp) {
                         $ktpprovinsi[] = $provinsiktp->name;
                     }
-                    //mencari kata provinsi yang paling sama dengan data yang didapat dari scan tesseract 
+
+                    //search for the province word that is most similar to the data obtained from the tesseract scan
                     usort($ktpprovinsi, function ($a, $b) use ($provinsi) {
                         similar_text($provinsi, $a, $percentA);
                         similar_text($provinsi, $b, $percentB);
                         return $percentB - $percentA;
                     });
                     $newprovinsi = $ktpprovinsi[0];
-                    //jika persamaan ktp lebih dari 50% maka data ktp direplace dengan data yang didapat dari array
+                    // if the identity card equation is more than 50%, then the identity card data is replaced with the data obtained from the array
                     similar_text($provinsi, $newprovinsi, $percent);
                     if ($percent > 50) {
                         $provinsi = $newprovinsi;
                     }
                 } else {
-                    //jika tesseract belum bisa mendeteksi kata setelah provinsi maka response penolakan
+                    // if tesseract cannot detect the word after province then the response is rejection
                     return response()->json([
                         'status' => false,
                         'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
@@ -254,22 +258,25 @@ class IdcardController extends Controller
                     ]);
                 }
 
-                // -----batas kota-------
-                //array index 1 berisi kota
+                // -----city limits-------
+
+                //array index 1 contains cities
                 $kota = $new_pattern[1];
-                //mengambil string yang berisi huruf dan spasi saja
+
+                // get a string containing only letters and spaces
                 $kota = preg_replace("/[^a-zA-Z ]/", "", $kota);
 
-                //menghilangkan spasi di depan dan belakang string
+                //removes leading and trailing spaces in the string
                 $kota = trim($kota);
 
-                //ambil kode provinsi untuk menjadi parameter pencarian di table kota
+                //take the province code to be the search parameter in the city table
                 $data_provinsi = Province::where('name', 'LIKE', '%' . $provinsi . '%')->first();
 
-                //apabila data provinsi kosong maka kata kota tidak di replace. jika tidak kosong maka lanjut ke proses selanjutnya
+                //if the province data is empty then the word city is not replaced. if not empty then proceed to the next process
                 if ($data_provinsi !== null) {
                     $result = $data_provinsi->code;
-                    //mencari array kota yang sesuai dengan kode provinsi
+
+                    //find city array according to province code
                     $kota_ktp = City::where('province_code', $result)->get();
 
 
@@ -277,7 +284,7 @@ class IdcardController extends Controller
                         $ktpkota[] = $kotaktp->name;
                     }
 
-                    //mencari kata provinsi yang paling sama dengan data yang didapat dari scan tesseract 
+                    // search for city words that are most similar to the data obtained from the tesseract scan
                     usort($ktpkota, function ($a, $b) use ($kota) {
                         similar_text($kota, $a, $percentA);
                         similar_text($kota, $b, $percentB);
@@ -285,7 +292,7 @@ class IdcardController extends Controller
                     });
 
                     $newkota = $ktpkota[0];
-                    //jika array ke 0 yang didapat di atas persamaanya lebih dari 50 persen maka kota di replace. jika tidak sama maka kata kota tetap memakai data yang didapat
+                    //if the 0th array that is obtained above the equation is more than 50 percent then the city is replaced. if not equal then response with rejection
                     similar_text($kota, $newkota, $percent);
                     if ($percent > 50) {
                         $kota = $newkota;
@@ -299,12 +306,10 @@ class IdcardController extends Controller
                 }
 
 
-                // -----batas NIK-------
-                //nik berada di array index[2]
 
+                //function to search for the desired data. such as NIK, name, address and others
                 function get_first_word($sentence)
                 {
-
 
                     return explode(' ', trim(preg_replace("/[^a-zA-Z0-9 ]/", "", $sentence)))[0];
                 }
@@ -316,6 +321,9 @@ class IdcardController extends Controller
                     return $percent_b - $percent_a;
                 }
 
+                // -----batas NIK-------
+
+                //find data containing NIK
                 $sentences = $new_pattern;
                 $keyword = "NIK";
                 usort($sentences, function ($a, $b) use ($keyword) {
@@ -323,30 +331,31 @@ class IdcardController extends Controller
                 });
                 $nik = $sentences[0];
 
-                //membersihkan string yang berisi nik. dan diambil hanya huruf, spasi dan angka saja.
+                //cleans the string containing nik. and only letters, spaces and numbers are taken.
+
                 $nik = preg_replace("/[^a-zA-Z0-9 ]/", "", $nik);
 
-                //membersihkan spasi di depan dan belakang string
+                // clear leading and trailing spaces of the string
                 $nik = trim($nik);
 
-                //merubah string yang berisi nik menjadi array
+                //converts the string containing nik into an array
                 $nik = explode(" ", $nik);
 
-                //array index ke 0 harus berisi kata NIK. dilakukan pengecekan dengan similar text. 
-                //apabila array tersebut nilai similar lebih 50% maka array 0 kita replace menjadi NIK 
-                //agar bisa dilakukan pengecekan berikutnya.
+                //array index 0 must contain the word NIK. checked with similar text.
+                // if the array is more than 50% similar then we will replace array 0 with NIK
+                //so we can do the next check.
                 similar_text("NIK", $nik[0], $percent);
                 if ($percent > 30) {
                     $nik[0] = "NIK";
                 }
 
-                // menggabungkan lagi menjadi string
+                // concatenate again into a string
                 $nik = implode(" ", $nik);
 
-                //pola regex nik
+                // regex pattern nik
                 $pattern = "/(?<=nik ).*/i";
 
-                //mencari string dengan pola diatas. apabila ada string berisi nik maka ambil string selanjutnya
+                // search string with pattern above. if there is a string containing nik then take the next string
                 $isExisted = preg_match($pattern, $nik, $matches);
                 if ($isExisted === 1) {
                     $nik = $matches[0];

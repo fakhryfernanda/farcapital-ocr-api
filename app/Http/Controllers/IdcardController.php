@@ -167,6 +167,7 @@ class IdcardController extends Controller
             }
 
 
+
             //mencari array yang berisi provinsi atau setidaknya paling sama dengan kata provinsi
             $words1 = $new_pattern;
             usort($new_pattern, function ($a, $b) {
@@ -180,17 +181,24 @@ class IdcardController extends Controller
             $new_pattern = array_slice($words1, $cutter);
 
 
+            $checkprovinsi = explode(" ", $new_pattern[0]);
 
-            // setelah dipotong. apabila tidak ditemukan array yang berisi provinsi maka buat response penolakan
-            if (count($new_pattern) <= 13) {
+            usort($checkprovinsi, function ($a, $b) {
+                similar_text('PROVINSI', $a, $percentA);
+                similar_text('PROVINSI', $b, $percentB);
+                return $percentB - $percentA;
+            });
+
+            similar_text($checkprovinsi[0], "PROVINSI", $percent);
+            if ($percent < 35) {
 
                 return response()->json([
                     'status' => false,
-                    'message' => 'ktp tidak terdeteksi',
+                    'message' => 'KTP Tidak Terdeteksi',
                     'data' => 'backscan'
                 ]);
             } else {
-                //mencari provinsi
+
                 $provinsi_baru = $new_pattern[0];
 
                 //explode array untuk mengganti kata provinsi yang tidak sempurna.
@@ -228,7 +236,7 @@ class IdcardController extends Controller
                         similar_text($provinsi, $b, $percentB);
                         return $percentB - $percentA;
                     });
-                    $newprovinsi = $provinsi_ktp[0];
+                    $newprovinsi = $ktpprovinsi[0];
                     //jika persamaan ktp lebih dari 50% maka data ktp direplace dengan data yang didapat dari array
                     similar_text($provinsi, $newprovinsi, $percent);
                     if ($percent > 50) {
@@ -280,7 +288,27 @@ class IdcardController extends Controller
 
                 // -----batas NIK-------
                 //nik berada di array index[2]
-                $nik = $new_pattern[2];
+
+                function get_first_word($sentence)
+                {
+
+
+                    return explode(' ', trim(preg_replace("/[^a-zA-Z0-9 ]/", "", $sentence)))[0];
+                }
+
+                function compare_first_words_to_keyword($a, $b, $keyword)
+                {
+                    similar_text(get_first_word($a), $keyword, $percent_a);
+                    similar_text(get_first_word($b), $keyword, $percent_b);
+                    return $percent_b - $percent_a;
+                }
+
+                $sentences = $new_pattern;
+                $keyword = "NIK";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
+                $nik = $sentences[0];
 
                 //membersihkan string yang berisi nik. dan diambil hanya huruf, spasi dan angka saja.
                 $nik = preg_replace("/[^a-zA-Z0-9 ]/", "", $nik);
@@ -339,8 +367,13 @@ class IdcardController extends Controller
 
                 // -----batas Nama-------
 
-                //nama berada di array index ke 3
-                $nama = $new_pattern[3];
+                $keyword = "Nama";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
+
+
+                $nama = $sentences[0];
                 //ambil hanya huruf dan spasi
                 $nama = preg_replace("/[^a-zA-Z ]/", "", $nama);
 
@@ -380,11 +413,19 @@ class IdcardController extends Controller
 
                 // -----batas suci-------
 
+
+                $keyword = "Tempat";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
+
+
+                $tanggal_lahir = $sentences[0];
+
                 //polanya yaitu ambil 2 digit angka pertama dari - 2 digit kedua dari - dan 4 digit pertama dari -
                 $pattern = "/\d{2} ?- ?\d{2} ?- ?\d{4}/i";
 
-                //tanggal lahir ada di array index ke 4
-                $tanggal_lahir = $new_pattern[4];
+
 
                 //jika ada kata yang sesuai dengan pola maka ambil kata tersebut
                 $isExisted = preg_match($pattern, $tanggal_lahir, $matches);
@@ -434,7 +475,7 @@ class IdcardController extends Controller
                     //pola regex
                     $pattern = "/(?<=Lahir).*/i";
 
-                    $tempat_lahir_awal = $new_pattern[4];
+                    $tempat_lahir_awal = $sentences[0];
                     //ambil tanggal lahir
 
                     $isExisted =  preg_match($pattern, $tempat_lahir_awal, $matches);
@@ -478,8 +519,16 @@ class IdcardController extends Controller
                 }
 
                 // -----batas golongan darah-------
+
+                $keyword = "Jenis";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
+
+
+                $goldar = $sentences[0];
+
                 $pattern = "/(?<=Darah).*/i";
-                $goldar = $new_pattern[5];
                 $isExisted = preg_match($pattern, $goldar, $matches);
                 if ($isExisted == 1) {
 
@@ -495,8 +544,9 @@ class IdcardController extends Controller
                 }
 
                 // -----batas suci-------
+
                 $pattern = "/(?<=kelamin).*/i";
-                $goldar = $new_pattern[5];
+                $goldar = $sentences[0];
                 $isExisted = preg_match($pattern, $goldar, $matches);
                 if ($isExisted == 1) {
 
@@ -545,7 +595,14 @@ class IdcardController extends Controller
 
                 // -----batas alamat-------
 
-                $alamat = $new_pattern[6];
+                $keyword = "Alamat";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
+
+
+                $alamat = $sentences[0];
+
 
                 $alamat = trim($alamat);
                 $alamat = explode(" ", $alamat);
@@ -555,8 +612,6 @@ class IdcardController extends Controller
                     $alamat[0] = "Alamat";
                 }
                 $alamat = implode(" ", $alamat);
-
-
 
                 $pattern = "/(?<=alamat).*/i";
                 $isExisted = preg_match($pattern, $alamat, $matches);
@@ -573,14 +628,20 @@ class IdcardController extends Controller
 
 
                 // -----batas kecamatan-------
+                $keyword = "Kecamatan";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
+
+                $kecamatan = $sentences[0];
+
                 $pattern = "/(?<=kecamatan).*/i";
-                $kecamatan = $new_pattern[9];
 
                 $kecamatan = trim($kecamatan);
                 $kecamatan = explode(" ", $kecamatan);
 
                 similar_text("Kecamatan", $kecamatan[0], $percent);
-                if ($percent > 50) {
+                if ($percent > 30) {
                     $kecamatan[0] = "Kecamatan";
                 }
                 $kecamatan = implode(" ", $kecamatan);
@@ -622,13 +683,20 @@ class IdcardController extends Controller
                 }
 
                 // -----batas rt dan rw-------
+
+                $keyword = "RT";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
+
+
                 $pattern = "/(?=[0-9]).*/i";
-                $isExisted = preg_match_all($pattern, $new_pattern[7], $hilih);
+                $isExisted = preg_match_all($pattern, $sentences[0], $rtrw);
 
 
                 // $rtw = explode(":", $new_pattern[7]);
                 if ($isExisted == 1) {
-                    $rtw = explode("/", $hilih[0][0]);
+                    $rtw = explode("/", $rtrw[0][0]);
 
 
                     $rt = trim($rtw[0], " ");
@@ -651,8 +719,13 @@ class IdcardController extends Controller
                 }
 
                 // -----batas desa-------
+
+                $keyword = "Kel/Desa";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
                 $pattern = "/(?<=Desa).*/i";
-                $kelurahan = $new_pattern[8];
+                $kelurahan = $sentences[0];
                 $isExisted = preg_match($pattern, $kelurahan, $matches);
                 if ($isExisted == 1) {
                     $kelurahan = $matches[0];
@@ -694,8 +767,12 @@ class IdcardController extends Controller
 
 
                 // -----batas agama-------
+                $keyword = "Agama";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
                 $pattern = "/(?<=agama).*/i";
-                $agama = $new_pattern[10];
+                $agama = $sentences[0];
                 $agama = trim($agama);
                 $agama = explode(" ", $agama);
 
@@ -737,8 +814,13 @@ class IdcardController extends Controller
                 }
 
                 // -----batas suci-------
+
+                $keyword = "Status";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
                 $pattern = "/(?<=perkawinan).*/i";
-                $perkawinan = $new_pattern[11];
+                $perkawinan = $sentences[0];
 
                 $isExisted = preg_match($pattern, $perkawinan, $matches);
 
@@ -746,6 +828,7 @@ class IdcardController extends Controller
                     $perkawinan = $matches[0];
                     $pattern = "/[a-z]+/i";
                     preg_match_all($pattern, $perkawinan, $attempt);
+                    //mengambil 2 kata dari array
                     $perkawinan = array_slice($attempt[0], 0, 2);
 
                     $perkawinan = implode(" ", $perkawinan);
@@ -770,9 +853,12 @@ class IdcardController extends Controller
 
                 // -----batas suci-------
 
-
+                $keyword = "Pekerjaan";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
                 $pattern = "/(?<=kerjaan ).*/i";
-                $pekerjaan = $new_pattern[12];
+                $pekerjaan = $sentences[0];
                 $pekerjaan = trim($pekerjaan);
                 $pekerjaan = explode(" ", $pekerjaan);
 
@@ -895,8 +981,12 @@ class IdcardController extends Controller
                 }
 
                 // -----batas kewarganegaraan-------
+                $keyword = "Kewarganegaraan";
+                usort($sentences, function ($a, $b) use ($keyword) {
+                    return compare_first_words_to_keyword($a, $b, $keyword);
+                });
                 $pattern = "/(?<=negaraan).*/i";
-                $kewarganegaraan = $new_pattern[13];
+                $kewarganegaraan = $sentences[0];
                 $kewarganegaraan = trim($kewarganegaraan);
                 $kewarganegaraan = explode(" ", $kewarganegaraan);
 

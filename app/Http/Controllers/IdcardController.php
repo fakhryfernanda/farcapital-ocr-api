@@ -31,128 +31,130 @@ class IdcardController extends Controller
 
     public function readImage(Request $request)
     {
-
-        //ambil image dari reques
+        //take image from request
         $image = $request->file('image');
 
 
         if (isset($image)) {
 
-            //konversi oleh tesseract
+            //conversion by tesseract
 
             $tesseract = new TesseractOCR($image);
             $parsedText = ($tesseract)->dpi(72)->lang('ind')->run();
 
-            //merubah jadi array
+            // convert to array
             $new_pattern = preg_split('/\n/', $parsedText);
 
-            //menghapus array kosong dan reset index
+            //removes empty arrays and resets index
             $new_pattern = array_filter($new_pattern);
             $new_pattern = \array_diff($new_pattern, [" "]);
             $new_pattern = array_values($new_pattern);
 
-            //apabila isi array kurang dari 13 maka konversi diulang dengan merubah gambar menjadi greyscale dan menambahkan kontras dan brightness
+            //if the length of the array are less than 14 then the conversion is repeated by changing the image to greyscale and adding contrast and brightness
             if (count($new_pattern) <= 13) {
 
+                //changing the image to greyscale and adding contrast and brightness
                 $image = Image::make($image)->greyscale()->contrast(10)->brightness(20);
-                //save gambar sementara
+
+                //save temporary image
                 $image->save('greyscale/bar.jpg');
 
-                //konversi oleh tesseract
+                //conversion by tesseract
                 $tesseract = new TesseractOCR('greyscale/bar.jpg');
                 $parsedText = ($tesseract)->dpi(72)->run();
 
-                //merubah jadi array
+                //convert to array based on line
                 $new_pattern = preg_split('/\n/', $parsedText);
 
-                //menghapus array kosong dan reset index
+                //removes empty arrays and resets index
                 $new_pattern = array_filter($new_pattern);
                 $new_pattern = \array_diff($new_pattern, [" "]);
                 $new_pattern = array_values($new_pattern);
-                //hapus lagi photonya
+
+                //delete the image
                 unlink('greyscale/bar.jpg');
 
 
-
+                //if the length of the array has not reached 14 then we repeat the scan process by adding a contrast of 5% in four stages
                 if (count($new_pattern) <= 13) {
 
                     $image = Image::make($image)->greyscale()->contrast(15)->brightness(20);
-                    //save gambar sementara
+
                     $image->save('greyscale/bar.jpg');
 
-                    //konversi oleh tesseract
+
                     $tesseract = new TesseractOCR('greyscale/bar.jpg');
                     $parsedText = ($tesseract)->dpi(72)->run();
 
-                    //merubah jadi array
+
                     $new_pattern = preg_split('/\n/', $parsedText);
 
-                    //menghapus array kosong dan reset index
+
                     $new_pattern = array_filter($new_pattern);
                     $new_pattern = \array_diff($new_pattern, [" "]);
                     $new_pattern = array_values($new_pattern);
-                    //hapus lagi photonya
+
                     unlink('greyscale/bar.jpg');
 
 
                     if (count($new_pattern) <= 13) {
 
                         $image = Image::make($image)->greyscale()->contrast(20)->brightness(20);
-                        //save gambar sementara
+
                         $image->save('greyscale/bar.jpg');
 
-                        //konversi oleh tesseract
+
                         $tesseract = new TesseractOCR('greyscale/bar.jpg');
                         $parsedText = ($tesseract)->dpi(72)->run();
 
-                        //merubah jadi array
+
                         $new_pattern = preg_split('/\n/', $parsedText);
 
-                        //menghapus array kosong dan reset index
+
                         $new_pattern = array_filter($new_pattern);
                         $new_pattern = \array_diff($new_pattern, [" "]);
                         $new_pattern = array_values($new_pattern);
-                        //hapus lagi photonya
+
                         unlink('greyscale/bar.jpg');
                         if (count($new_pattern) <= 13) {
 
                             $image = Image::make($image)->greyscale()->contrast(25)->brightness(20);
-                            //save gambar sementara
+
                             $image->save('greyscale/bar.jpg');
 
-                            //konversi oleh tesseract
+
                             $tesseract = new TesseractOCR('greyscale/bar.jpg');
                             $parsedText = ($tesseract)->dpi(72)->lang('ind')->userWords('user.txt')->run();
 
-                            //merubah jadi array
+
                             $new_pattern = preg_split('/\n/', $parsedText);
 
-                            //menghapus array kosong dan reset index
+
                             $new_pattern = array_values(array_filter($new_pattern));
-                            //hapus lagi photonya
+
                             unlink('greyscale/bar.jpg');
 
                             if (count($new_pattern) <= 13) {
 
                                 $image = Image::make($image)->greyscale()->contrast(30)->brightness(20);
-                                //save gambar sementara
+
                                 $image->save('greyscale/bar.jpg');
 
-                                //konversi oleh tesseract
+
                                 $tesseract = new TesseractOCR('greyscale/bar.jpg');
                                 $parsedText = ($tesseract)->dpi(72)->lang('ind')->userWords('user.txt')->run();
 
-                                //merubah jadi array
+
                                 $new_pattern = preg_split('/\n/', $parsedText);
 
-                                //menghapus array kosong dan reset index
+
                                 $new_pattern = array_filter($new_pattern);
                                 $new_pattern = \array_diff($new_pattern, [" "]);
                                 $new_pattern = array_values($new_pattern);
-                                //hapus lagi photonya
+
                                 unlink('greyscale/bar.jpg');
 
-                                if (count($new_pattern) <= 13) {
+                                if (count($new_pattern) == 0) {
 
                                     return response()->json([
                                         'status' => false,
@@ -168,7 +170,7 @@ class IdcardController extends Controller
 
 
 
-            //mencari array yang berisi provinsi atau setidaknya paling sama dengan kata provinsi
+            //find an array that contains the province or at least equals the word province
             $words1 = $new_pattern;
             usort($new_pattern, function ($a, $b) {
                 similar_text('PROVINSI', $a, $percentA);
@@ -176,11 +178,12 @@ class IdcardController extends Controller
                 return $percentB - $percentA;
             });
 
-            //apabila sudah ditemukan maka array sebelumnya akan dipotong
+            //if it is found then the previous array will be cut
             $cutter = array_search($new_pattern[0], $words1);
             $new_pattern = array_slice($words1, $cutter);
 
 
+            //checking a similarity of array
             $checkprovinsi = explode(" ", $new_pattern[0]);
 
             usort($checkprovinsi, function ($a, $b) {
@@ -188,7 +191,7 @@ class IdcardController extends Controller
                 similar_text('PROVINSI', $b, $percentB);
                 return $percentB - $percentA;
             });
-
+            //if the similarity is less than 35 percent then there will be a rejection response
             similar_text($checkprovinsi[0], "PROVINSI", $percent);
             if ($percent < 35) {
 
@@ -243,8 +246,12 @@ class IdcardController extends Controller
                         $provinsi = $newprovinsi;
                     }
                 } else {
-                    //jika tesseract belum bisa mendeteksi kata setelah provinsi maka variable provinsi dikosongkan
-                    $provinsi = '';
+                    //jika tesseract belum bisa mendeteksi kata setelah provinsi maka response penolakan
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
+                        'data' => 'backscan'
+                    ]);
                 }
 
                 // -----batas kota-------
@@ -282,6 +289,12 @@ class IdcardController extends Controller
                     similar_text($kota, $newkota, $percent);
                     if ($percent > 50) {
                         $kota = $newkota;
+                    } else {
+                        return response()->json([
+                            'status' => false,
+                            'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
+                            'data' => 'backscan'
+                        ]);
                     }
                 }
 
@@ -493,8 +506,11 @@ class IdcardController extends Controller
                     }
                 } else {
 
+
                     $kode_kota =  substr($nik, 0, 4);
+
                     $data_kota = City::where('name', 'LIKE', '%' . $kota . '%')->first();
+
                     $data_kota = $data_kota->code;
 
                     if ($data_kota ==  $kode_kota) {

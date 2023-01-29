@@ -34,6 +34,18 @@ class IdcardController extends Controller
     {
         //take image from request
         $image = $request->file('image');
+        $payload = ["image" => $image];
+        $validator = Validator::make($payload, [
+            "image" => 'required|mimes:jpg,jpeg,png,heic'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                "status" => false,
+                "message" => 'format yang diperbolehkan adalah jpg, jpeg, png, heic',
+                "data" => 'backscan'
+            ]);
+        }
 
 
         if (isset($image)) {
@@ -111,7 +123,6 @@ class IdcardController extends Controller
 
                         $new_pattern = preg_split('/\n/', $parsedText);
 
-
                         $new_pattern = array_filter($new_pattern);
                         $new_pattern = \array_diff($new_pattern, [" "]);
                         $new_pattern = array_values($new_pattern);
@@ -141,13 +152,10 @@ class IdcardController extends Controller
 
                                 $image->save('greyscale/bar.jpg');
 
-
                                 $tesseract = new TesseractOCR('greyscale/bar.jpg');
                                 $parsedText = ($tesseract)->dpi(72)->lang('ind')->userWords('user.txt')->run();
 
-
                                 $new_pattern = preg_split('/\n/', $parsedText);
-
 
                                 $new_pattern = array_filter($new_pattern);
                                 $new_pattern = \array_diff($new_pattern, [" "]);
@@ -168,8 +176,6 @@ class IdcardController extends Controller
                     }
                 }
             }
-
-
 
             //find an array that contains the province or at least equals the word province
             $words1 = $new_pattern;
@@ -835,7 +841,6 @@ class IdcardController extends Controller
                     if (isset($matches[0])) {
                         $agama = $matches[0];
 
-
                         $agama_ktp = [
                             'ISLAM',
                             'KRISTEN',
@@ -1051,6 +1056,27 @@ class IdcardController extends Controller
     public function store(Request $request)
     {
         $payload = $request->all();
+        $payload = [
+            "nik" => strtoupper($request->input('nik')),
+            "nama" => strtoupper($request->input('nama')),
+            "tempat_lahir" => strtoupper($request->input('tempat_lahir')),
+            "tanggal_lahir" => strtoupper($request->input('tanggal_lahir')),
+            "jenis_kelamin" => strtoupper($request->input('jenis_kelamin')),
+            "alamat" => strtoupper($request->input('alamat')),
+            "rt" => strtoupper($request->input('rt')),
+            "rw" => strtoupper($request->input('rw')),
+            "kelurahan" => strtoupper($request->input('kelurahan')),
+            "kecamatan" => strtoupper($request->input('kecamatan')),
+            "kota" => strtoupper($request->input('kota')),
+            "provinsi" => strtoupper($request->input('provinsi')),
+            "agama" => strtoupper($request->input('agama')),
+            "status_perkawinan" => strtoupper($request->input('status_perkawinan')),
+            "pekerjaan" => strtoupper($request->input('pekerjaan')),
+            "kewarganegaraan" => strtoupper($request->input('kewarganegaraan')),
+            "golongan_darah" => strtoupper($request->input('golongan_darah')),
+            "ktp" => $request->file('ktp'),
+            "id_user" => $request->input('id_user')
+        ];
 
 
         $validator = Validator::make($payload, [
@@ -1071,6 +1097,7 @@ class IdcardController extends Controller
             "pekerjaan" => 'required',
             "kewarganegaraan" => 'required',
             "golongan_darah" => 'required|max:2',
+            "id_user" => 'required',
             "ktp" => 'required|mimes:jpg,jpeg,png,heic'
         ]);
 

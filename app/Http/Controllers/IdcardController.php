@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\City;
 use App\Models\District;
+use App\Models\Pekerjaan;
 use App\Models\Province;
 use App\Models\Village;
 
@@ -920,99 +921,10 @@ class IdcardController extends Controller
 
                     $pekerjaan = implode(" ", $attempt[0]);
 
-
-                    $pekerjaan_ktp =
-                        [
-                            'MENGURUS RUMAH TANGGA',
-                            'BELUM/ TIDAK BEKERJA',
-                            'PELAJAR/ MAHASISWA',
-                            'PENSIUNAN',
-                            'PEGAWAI NEGERI SIPIL',
-                            'TENTARA NASIONAL INDONESIA',
-                            'KEPOLISISAN RI',
-                            'PERDAGANGAN',
-                            'PETANI/ PEKEBUN',
-                            'PETERNAK',
-                            'NELAYAN/ PERIKANAN',
-                            'INDUSTRI',
-                            'KONSTRUKSI',
-                            'TRANSPORTASI',
-                            'KARYAWAN SWASTA',
-                            'KARYAWAN BUMN',
-                            'KARYAWAN BUMD',
-                            'KARYAWAN HONORER',
-                            'PEGAWAI SWASTA',
-                            'BURUH HARIAN LEPAS',
-                            'BURUH TANI/ PERKEBUNAN',
-                            'BURUH NELAYAN/ PERIKANAN',
-                            'BURUH PETERNAKAN',
-                            'PEMBANTU RUMAH TANGGA',
-                            'TUKANG CUKUR',
-                            'TUKANG LISTRIK',
-                            'TUKANG BATU',
-                            'TUKANG KAYU',
-                            'TUKANG SOL SEPATU',
-                            'TUKANG LAS/ PANDAI BESI',
-                            'TUKANG JAHIT',
-                            'TUKANG GIGI',
-                            'PENATA RIAS',
-                            'PENATA BUSANA',
-                            'PENATA RAMBUT',
-                            'MEKANIK',
-                            'SENIMAN',
-                            'TABIB',
-                            'PARAJI',
-                            'PERANCANG BUSANA',
-                            'PENTERJEMAH',
-                            'IMAM MASJID',
-                            'PENDETA',
-                            'PASTOR',
-                            'WARTAWAN',
-                            'USTADZ/ MUBALIGH',
-                            'JURU MASAK',
-                            'PROMOTOR ACARA',
-                            'ANGGOTA DPR-RI',
-                            'ANGGOTA DPD',
-                            'ANGGOTA BPK',
-                            'PRESIDEN',
-                            'WAKIL PRESIDEN',
-                            'ANGGOTA MAHKAMAH KONSTITUSI',
-                            'ANGGOTA KABINET/ KEMENTERIAN',
-                            'DUTA BESAR',
-                            'GUBERNUR',
-                            'WAKIL GUBERNUR',
-                            'BUPATI',
-                            'WAKIL BUPATI',
-                            'WALIKOTA',
-                            'WAKIL WALIKOTA',
-                            'ANGGOTA DPRD PROVINSI',
-                            'ANGGOTA DPRD KABUPATEN/ KOTA',
-                            'DOSEN',
-                            'GURU',
-                            'PILOT',
-                            'PENGACARA',
-                            'NOTARIS',
-                            'ARSITEK',
-                            'AKUNTAN',
-                            'KONSULTAN',
-                            'DOKTER',
-                            'BIDAN',
-                            'PERAWAT',
-                            'APOTEKER',
-                            'PSIKIATER/ PSIKOLOG',
-                            'PENYIAR TELEVISI',
-                            'PENYIAR RADIO',
-                            'PELAUT',
-                            'PENELITI',
-                            'SOPIR',
-                            'PIALANG',
-                            'PARANORMAL',
-                            'PEDAGANG',
-                            'PERANGKAT DESA',
-                            'KEPALA DESA',
-                            'BIARAWATI',
-                            'WIRASWASTA'
-                        ];
+                    $datapekerjaan = Pekerjaan::all();
+                    foreach ($datapekerjaan as $jobktp) {
+                        $pekerjaan_ktp[] = $jobktp->nama_pekerjaan;
+                    }
                     usort($pekerjaan_ktp, function ($a, $b) use ($pekerjaan) {
 
                         similar_text($pekerjaan, $a, $percentA);

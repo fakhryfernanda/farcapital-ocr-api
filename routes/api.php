@@ -25,8 +25,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get('/dashboard', [IdcardController::class, "showAll"])->middleware("auth:sanctum");
 
 // ----------( identity )---------
-Route::post("/identity/add", [IdcardController::class, "store"]);
-Route::post("/upload", [IdcardController::class, "readImage"]);
+Route::post("/identity/add", [IdcardController::class, "store"])->middleware("auth:sanctum");
+Route::post("/upload", [IdcardController::class, "readImage"])->middleware("auth:sanctum");
 Route::get("/identity/{id}", [IdcardController::class, "index"])->middleware("auth:sanctum");
 
 // ----------( user )---------
@@ -46,10 +46,9 @@ Route::get("/emailbytoken/{token}", [UserController::class, "getEmailby"]);
 Route::post("/changeforgotpass", [UserController::class, "changeforgotpass"]);
 
 // ----------( role )---------
-Route::get("/role", [RoleController::class, "index"]);
+Route::get("/role", [RoleController::class, "index"])->middleware("auth:sanctum");
 
 // ---------{Sanctum}-------
 Route::post("/login", [AuthController::class, "login"]);
-// Route::post("/logout/{token}", [AuthController::class, "logout"]);
 Route::get("/logout", [AuthController::class, "logout"])->middleware("auth:sanctum");
 Route::get("/me", [AuthController::class, "getUser"])->middleware("auth:sanctum");

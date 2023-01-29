@@ -352,27 +352,30 @@ class IdcardController extends Controller
                 // concatenate again into a string
                 $nik = implode(" ", $nik);
 
-                // regex pattern nik
+                // regex pattern NIK
                 $pattern = "/(?<=nik ).*/i";
 
                 // search string with pattern above. if there is a string containing nik then take the next string
                 $isExisted = preg_match($pattern, $nik, $matches);
                 if ($isExisted === 1) {
                     $nik = $matches[0];
-                    //mereplace string yang berisi nik. kita ambil hanya angka saja
+
+                    //replace string containing NIK. take only numbers
                     $nik = preg_replace("/[^0-9]/", "", $nik);
 
-                    //pola regex 
+                    //regex Pattern
                     $pattern = "/[0-9]+/i";
 
-                    //mencari string dengan pola diatas. apabila ada string berisi angka maka ambil semua string berisi angka
+                    // search string with pattern above. if there is a string containing numbers then get all strings containing numbers
                     $isExisted = preg_match($pattern, $nik, $matches);
                     if ($isExisted == 1) {
                         $nik = $matches[0];
-                        //ambil 16 angka nik terakhir.
+
+                        //take the last 16 digits of NIK.
                         $nik = substr($nik, -16);
                     } else {
-                        //jika tidak ada. maka harus di upload ulang 
+
+                        //if no string contains number then generate reupload response
                         return response()->json([
                             'status' => false,
                             'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
@@ -387,43 +390,47 @@ class IdcardController extends Controller
                     ]);
                 }
 
-                // -----batas Nama-------
+                //-----Name limit-------
 
+                //search name in array  with keyword nama
                 $keyword = "Nama";
                 usort($sentences, function ($a, $b) use ($keyword) {
                     return compare_first_words_to_keyword($a, $b, $keyword);
                 });
-
-
                 $nama = $sentences[0];
-                //ambil hanya huruf dan spasi
+
+
+                //take only letters and spaces
                 $nama = preg_replace("/[^a-zA-Z ]/", "", $nama);
 
-                //menghapus spasi didepan dan belakang string
+                //removes leading and trailing spaces in the string
                 $nama = trim($nama);
 
-                //merubah string jadi array
+                // convert string to array
                 $nama = explode(" ", $nama);
 
-                //jika array index 3 sama senilai lebih 25 persen dari kata "Nama" maka di replace
+                //if the contents of $name[0] are equal to more than 25 percent of the word "Name" then it is replaced
                 similar_text("Nama", $nama[0], $percent);
                 if ($percent > 25) {
                     $nama[0] = "Nama";
                 }
-                //ubah jadi string kembali
+
+                //convert to string again
                 $nama = implode(" ", $nama);
 
-                //pola regex
+                //regex pattern
                 $pattern = "/(?<=nama).*/i";
-                //jika sesuai dengan pola diatas maka lanjut proses
+
+                //if it matches the pattern above then continue the process
                 $isExisted = preg_match($pattern, $nama, $matches);
                 if ($isExisted == 1) {
 
                     $nama = $matches[0];
-                    //pola regex kedua
+
                     $pattern = "/[a-z]+/i";
                     preg_match_all($pattern, $nama, $attempt);
-                    //ubah array jadi string kembali
+
+
                     $nama = implode(" ", $attempt[0]);
                 } else {
                     return response()->json([
@@ -433,9 +440,9 @@ class IdcardController extends Controller
                     ]);
                 }
 
-                // -----batas suci-------
+                // -----Tanggal lahir-------
 
-
+                //search date and place of birthday in array  with keyword "tempat"
                 $keyword = "Tempat";
                 usort($sentences, function ($a, $b) use ($keyword) {
                     return compare_first_words_to_keyword($a, $b, $keyword);
@@ -444,12 +451,12 @@ class IdcardController extends Controller
 
                 $tanggal_lahir = $sentences[0];
 
-                //polanya yaitu ambil 2 digit angka pertama dari - 2 digit kedua dari - dan 4 digit pertama dari -
+                //the pattern is to take the first 2 digits of - the second 2 digits of - and the first 4 digits of -
                 $pattern = "/\d{2} ?- ?\d{2} ?- ?\d{4}/i";
 
 
 
-                //jika ada kata yang sesuai dengan pola maka ambil kata tersebut
+                //if there is a number that matches the pattern then take that number
                 $isExisted = preg_match($pattern, $tanggal_lahir, $matches);
                 if ($isExisted == 1) {
 
@@ -515,7 +522,8 @@ class IdcardController extends Controller
                     }
                 } else {
 
-
+                    //if date of birth is blank. we can take the date of birth from the 7th and 8th numbers in the NIK. with
+                    //the provision of. the previous number corresponds to the city code. as a comparison and proof if the NIK is correct
                     $kode_kota =  substr($nik, 0, 4);
 
                     $data_kota = City::where('name', 'LIKE', '%' . $kota . '%')->first();
@@ -543,8 +551,9 @@ class IdcardController extends Controller
                     $tempat_lahir = "";
                 }
 
-                // -----batas golongan darah-------
 
+
+                //collect blood group data
                 $keyword = "Jenis";
                 usort($sentences, function ($a, $b) use ($keyword) {
                     return compare_first_words_to_keyword($a, $b, $keyword);
@@ -569,6 +578,7 @@ class IdcardController extends Controller
                 }
 
                 // -----batas suci-------
+                //get gender data
 
                 $pattern = "/(?<=kelamin).*/i";
                 $goldar = $sentences[0];
@@ -603,6 +613,8 @@ class IdcardController extends Controller
                         }
                     }
                 } else {
+
+                    //if data is empty. we can take the gender from the NIK data. Same as date of birth
                     $jumlah_nik = strlen($nik);
                     if ($jumlah_nik >= 16) {
                         $gender =  substr($nik, 6, 2);
@@ -618,8 +630,8 @@ class IdcardController extends Controller
                     }
                 }
 
-                // -----batas alamat-------
 
+                //get address data
                 $keyword = "Alamat";
                 usort($sentences, function ($a, $b) use ($keyword) {
                     return compare_first_words_to_keyword($a, $b, $keyword);
@@ -652,7 +664,7 @@ class IdcardController extends Controller
                 }
 
 
-                // -----batas kecamatan-------
+                // get district data
                 $keyword = "Kecamatan";
                 usort($sentences, function ($a, $b) use ($keyword) {
                     return compare_first_words_to_keyword($a, $b, $keyword);
@@ -678,7 +690,7 @@ class IdcardController extends Controller
 
                     $kecamatan = implode(" ", $attempt[0]);
 
-                    //cek nama kecamatan dari database
+                    //check the sub-district name from the database
                     $data_kabupaten = City::where('name', 'LIKE', '%' . $kota . '%')->first();
                     if ($data_kabupaten !== null) {
                         $result = $data_kabupaten->code;
@@ -707,7 +719,7 @@ class IdcardController extends Controller
                     $kecamatan = '';
                 }
 
-                // -----batas rt dan rw-------
+                //get RT & RW data-------
 
                 $keyword = "RT";
                 usort($sentences, function ($a, $b) use ($keyword) {
@@ -743,7 +755,7 @@ class IdcardController extends Controller
                     $rw = '';
                 }
 
-                // -----batas desa-------
+                // -- get village data-------
 
                 $keyword = "Kel/Desa";
                 usort($sentences, function ($a, $b) use ($keyword) {
@@ -791,7 +803,7 @@ class IdcardController extends Controller
                 }
 
 
-                // -----batas agama-------
+                // -----get religious data-------
                 $keyword = "Agama";
                 usort($sentences, function ($a, $b) use ($keyword) {
                     return compare_first_words_to_keyword($a, $b, $keyword);
@@ -838,7 +850,8 @@ class IdcardController extends Controller
                     $agama = '';
                 }
 
-                // -----batas suci-------
+
+                // -----get marital status-------
 
                 $keyword = "Status";
                 usort($sentences, function ($a, $b) use ($keyword) {
@@ -876,7 +889,7 @@ class IdcardController extends Controller
                     $perkawinan = '';
                 }
 
-                // -----batas suci-------
+                // -----get profession data-------
 
                 $keyword = "Pekerjaan";
                 usort($sentences, function ($a, $b) use ($keyword) {
@@ -1005,7 +1018,7 @@ class IdcardController extends Controller
                     $pekerjaan = '';
                 }
 
-                // -----batas kewarganegaraan-------
+                // -----get citizenship data-------
                 $keyword = "Kewarganegaraan";
                 usort($sentences, function ($a, $b) use ($keyword) {
                     return compare_first_words_to_keyword($a, $b, $keyword);
@@ -1039,6 +1052,7 @@ class IdcardController extends Controller
                     $kewarganegaraan = 'WNI';
                 }
 
+                //result
                 $ktp = [
                     "provinsi" => $provinsi,
                     "kota" => $kota,

@@ -259,7 +259,7 @@ class IdcardController extends Controller
                 }
 
                 // -----city limits-------
-                if (count($new_pattern) == 2) {
+                if (count($new_pattern) > 2) {
                     //array index 1 contains cities
                     $kota = $new_pattern[1];
 

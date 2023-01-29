@@ -259,50 +259,57 @@ class IdcardController extends Controller
                 }
 
                 // -----city limits-------
+                if (count($new_pattern) == 2) {
+                    //array index 1 contains cities
+                    $kota = $new_pattern[1];
 
-                //array index 1 contains cities
-                $kota = $new_pattern[1];
+                    // get a string containing only letters and spaces
+                    $kota = preg_replace("/[^a-zA-Z ]/", "", $kota);
 
-                // get a string containing only letters and spaces
-                $kota = preg_replace("/[^a-zA-Z ]/", "", $kota);
+                    //removes leading and trailing spaces in the string
+                    $kota = trim($kota);
 
-                //removes leading and trailing spaces in the string
-                $kota = trim($kota);
+                    //take the province code to be the search parameter in the city table
+                    $data_provinsi = Province::where('name', 'LIKE', '%' . $provinsi . '%')->first();
 
-                //take the province code to be the search parameter in the city table
-                $data_provinsi = Province::where('name', 'LIKE', '%' . $provinsi . '%')->first();
+                    //if the province data is empty then the word city is not replaced. if not empty then proceed to the next process
+                    if ($data_provinsi !== null) {
+                        $result = $data_provinsi->code;
 
-                //if the province data is empty then the word city is not replaced. if not empty then proceed to the next process
-                if ($data_provinsi !== null) {
-                    $result = $data_provinsi->code;
-
-                    //find city array according to province code
-                    $kota_ktp = City::where('province_code', $result)->get();
+                        //find city array according to province code
+                        $kota_ktp = City::where('province_code', $result)->get();
 
 
-                    foreach ($kota_ktp as $kotaktp) {
-                        $ktpkota[] = $kotaktp->name;
+                        foreach ($kota_ktp as $kotaktp) {
+                            $ktpkota[] = $kotaktp->name;
+                        }
+
+                        // search for city words that are most similar to the data obtained from the tesseract scan
+                        usort($ktpkota, function ($a, $b) use ($kota) {
+                            similar_text($kota, $a, $percentA);
+                            similar_text($kota, $b, $percentB);
+                            return $percentB - $percentA;
+                        });
+
+                        $newkota = $ktpkota[0];
+                        //if the 0th array that is obtained above the equation is more than 50 percent then the city is replaced. if not equal then response with rejection
+                        similar_text($kota, $newkota, $percent);
+                        if ($percent > 50) {
+                            $kota = $newkota;
+                        } else {
+                            return response()->json([
+                                'status' => false,
+                                'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
+                                'data' => 'backscan'
+                            ]);
+                        }
                     }
-
-                    // search for city words that are most similar to the data obtained from the tesseract scan
-                    usort($ktpkota, function ($a, $b) use ($kota) {
-                        similar_text($kota, $a, $percentA);
-                        similar_text($kota, $b, $percentB);
-                        return $percentB - $percentA;
-                    });
-
-                    $newkota = $ktpkota[0];
-                    //if the 0th array that is obtained above the equation is more than 50 percent then the city is replaced. if not equal then response with rejection
-                    similar_text($kota, $newkota, $percent);
-                    if ($percent > 50) {
-                        $kota = $newkota;
-                    } else {
-                        return response()->json([
-                            'status' => false,
-                            'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
-                            'data' => 'backscan'
-                        ]);
-                    }
+                } else {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Mohon Upload Ulang KTP dengan Kualitas yang lebih baik',
+                        'data' => 'backscan'
+                    ]);
                 }
 
 
